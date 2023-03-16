@@ -24,8 +24,9 @@
 //import { Todo, Meta } from 'components/models';
 //import ExampleComponent from 'components/ExampleComponent.vue';
 import { api } from 'src/boot/axios';
+import { showAlert } from 'src/boot/util';
 import { defineComponent, onMounted, PropType, ref } from 'vue';
-import { ChartData, Grafico, GraficoOneCol } from '../models';
+import { ChartData, Grafico, GraficoRelatorio } from '../models';
 
 export default defineComponent({
   name: 'FarolChart',
@@ -34,7 +35,7 @@ export default defineComponent({
   },
   props: {
     graficoThreeCol: {
-      type: Object as PropType<GraficoOneCol>,
+      type: Object as PropType<GraficoRelatorio>,
       required: true,
     },
   },
@@ -44,25 +45,38 @@ export default defineComponent({
     const graficos = ref<Array<Grafico>>([]);
 
     async function loadGraficos() {
-      const resp = await api.post<ChartData[]>(
-        '/api/Event/GetEventsInfo',
-        props.graficoThreeCol.data
-      );
-      chartDatas.value = resp.data;
-      console.log(props.graficoThreeCol.data.filter);
-      chartDatas.value.forEach((cd) => {
-        const porcientos = [];
-        porcientos.push(
-          cd.approvedPercent,
-          cd.pendentPercent,
-          cd.rejectPercent
-        );
 
-        graficos.value.push({
-          series: [{ name: 'Eventos', data: porcientos }],
-          name: cd.name,
+      const temp = props.graficoThreeCol.data;
+      //console.log(temp.filter,temp.city,  temp.state); //no hacer peticion cuando es regional hasta defnir todos los campos
+      if(temp.filter === 6 && (temp.city == undefined || temp.city == '' || temp.state == undefined || temp.state < 0))
+        return;
+      try {
+        const resp = await api.post<ChartData[]>(
+          '/api/Event/GetEventsInfo',
+          props.graficoThreeCol.data
+        );
+        chartDatas.value = resp.data;
+        //console.log(props.graficoThreeCol.data.filter);
+        chartDatas.value.forEach((cd) => {
+          const porcientos = [];
+          porcientos.push(
+            cd.approvedPercent,
+            cd.pendentPercent,
+            cd.rejectPercent
+          );
+
+          graficos.value.push({
+            series: [{ name: 'Eventos', data: porcientos }],
+            name: cd.name,
+          });
         });
-      });
+      } catch (err: any) {
+        showAlert(
+          `não foi possível exibir gráficos: ${
+            err.response?.data.errorMessage ?? err
+          }`
+        );
+      }
     }
 
     onMounted(async () => {
@@ -97,7 +111,7 @@ export default defineComponent({
         },
 
         xaxis: {
-          categories: [ 'Aprovado', 'Pendente', 'Reprovado'],
+          categories: ['Aprovado', 'Pendente', 'Reprovado'],
           position: 'top',
           axisBorder: {
             show: false,

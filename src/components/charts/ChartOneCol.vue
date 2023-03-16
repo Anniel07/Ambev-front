@@ -1,5 +1,4 @@
 <template>
-
   <div class="row">
     <div
       class="col-3 column items-center justify-center"
@@ -15,18 +14,16 @@
         :series="cd.series"
       ></apexchart>
       <p style="font-weight: bold; margin-top: -20px">{{ cd.name }}</p>
-      <!-- -->
     </div>
   </div>
 </template>
 
 
 <script lang="ts">
-//import { Todo, Meta } from 'components/models';
-//import ExampleComponent from 'components/ExampleComponent.vue';
 import { api } from 'src/boot/axios';
+import { showAlert } from 'src/boot/util';
 import { defineComponent, onMounted, PropType, ref } from 'vue';
-import { ChartData, FilterGrafico, Grafico, GraficoOneCol } from '../models';
+import { ChartData, Grafico, GraficoRelatorio } from '../models';
 
 export default defineComponent({
   name: 'FarolChart',
@@ -35,42 +32,50 @@ export default defineComponent({
   },
   props: {
     graficoOneCol: {
-      type: Object as PropType<GraficoOneCol>,
+      type: Object as PropType<GraficoRelatorio>,
       required: true,
-    }
+    },
   },
   setup(props) {
     //console.log("props", props);
     const chartDatas = ref<Array<ChartData>>([]);
     const graficos = ref<Array<Grafico>>([]);
 
-
     async function loadGraficos() {
-      const resp = await api.post<ChartData[]>(
-        '/api/Event/GetEventsInfo' , props.graficoOneCol.data
-      );
-      chartDatas.value = resp.data;
-      console.log(props.graficoOneCol.data.filter);
-      chartDatas.value.forEach((cd) => {
-        const porcientos = [];
-        let pc = 0;
-        switch(props.graficoOneCol.data.filter){
-          case 0:
-            pc = cd.approvedPercent;
-            break;
-          case 1:
-            pc = cd.rejectPercent;
-            break;
-          default:
-            pc = cd.expiredPercent;
-            break;
-        }
-        porcientos.push(pc);
-        graficos.value.push({
-          series: [{ name: props.graficoOneCol.caption, data: porcientos }],
-          name: cd.name,
+      try {
+        const resp = await api.post<ChartData[]>(
+          '/api/Event/GetEventsInfo',
+          props.graficoOneCol.data
+        );
+        chartDatas.value = resp.data;
+        //console.log(props.graficoOneCol.data.filter);
+        chartDatas.value.forEach((cd) => {
+          const porcientos = [];
+          let pc = 0;
+          switch (props.graficoOneCol.data.filter) {
+            case 0:
+              pc = cd.approvedPercent;
+              break;
+            case 1:
+              pc = cd.rejectPercent;
+              break;
+            default:
+              pc = cd.expiredPercent;
+              break;
+          }
+          porcientos.push(pc);
+          graficos.value.push({
+            series: [{ name: props.graficoOneCol.caption, data: porcientos }],
+            name: cd.name,
+          });
         });
-      });
+      } catch (err: any) {
+        showAlert(
+          `não foi possível exibir gráficos: ${
+            err.response?.data.errorMessage ?? err
+          }`
+        );
+      }
     }
 
     onMounted(async () => {

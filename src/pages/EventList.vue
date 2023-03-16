@@ -85,6 +85,7 @@
               : 'negative'
           "
           icon="edit"
+          :disable="event.status !== 0"
         />
         <q-btn
           flat

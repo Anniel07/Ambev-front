@@ -22,16 +22,20 @@
     </div>
     <div class="q-ml-xl row items-start">
       <div class="col-3"></div>
-      <div class="col-6 row items-center">
-        <q-select
-          v-model="brandMod"
-          :options="brands"
-          label="Selecione uma Marca*"
-          style="width: 90%"
-          :rules="[(val) => !!val || 'O campo é obrigatório.']"
-        />
-        <q-space />
-        <q-btn icon="add" color="primary" @click="prompt" />
+      <div class="col-6">
+        <div class="row q-col-gutter-lg">
+          <div class="col-11">
+            <q-select
+              v-model="brandMod"
+              :options="brands"
+              label="Selecione uma Marca*"
+              :rules="[(val) => !!val || 'O campo é obrigatório.']"
+            />
+          </div>
+          <div class="col-1">
+            <q-btn icon="add" color="primary" @click="prompt" />
+          </div>
+        </div>
       </div>
       <div class="col-3"></div>
     </div>
@@ -49,111 +53,140 @@
 
     <div class="q-ml-xl row items-start">
       <div class="col-3"></div>
-      <div class="col-3">
-        <q-input
-          v-model="startDate"
-          :rules="[(val) => !!val || 'O campo é obrigatório.']"
-          label="Data e hora do Início do Evento*"
-        >
-          <template v-slot:prepend>
-            <q-icon name="event" class="cursor-pointer">
-              <q-popup-proxy
-                cover
-                transition-show="scale"
-                transition-hide="scale"
-              >
-                <q-date
-                  v-model="startDate"
-                  mask="DD-MM-YYYY HH:mm"
-                  :locale="ptLocale"
-                >
-                  <div class="row items-center justify-end">
-                    <q-btn v-close-popup label="Fechar" color="primary" flat />
-                  </div>
-                </q-date>
-              </q-popup-proxy>
-            </q-icon>
-          </template>
+      <div class="col-6">
+        <div class="row q-col-gutter-lg">
+          <div class="col-6">
+            <q-input
+              v-model="startDate"
+              :rules="[(val) => !!val || 'O campo é obrigatório.']"
+              label="Data e hora do Início do Evento*"
+            >
+              <template v-slot:prepend>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy
+                    cover
+                    transition-show="scale"
+                    transition-hide="scale"
+                  >
+                    <q-date
+                      v-model="startDate"
+                      mask="DD-MM-YYYY HH:mm"
+                      :locale="ptLocale"
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn
+                          v-close-popup
+                          label="Fechar"
+                          color="primary"
+                          flat
+                        />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
 
-          <template v-slot:append>
-            <q-icon name="access_time" class="cursor-pointer">
-              <q-popup-proxy
-                cover
-                transition-show="scale"
-                transition-hide="scale"
-              >
-                <q-time v-model="startDate" mask="DD-MM-YYYY HH:mm" format24h>
-                  <div class="row items-center justify-end">
-                    <q-btn v-close-popup label="Fechar" color="primary" flat />
-                  </div>
-                </q-time>
-              </q-popup-proxy>
-            </q-icon>
-          </template>
-        </q-input>
-      </div>
-      <div class="col-3 q-ml-md">
-        <q-input
-          v-model="endDate"
-          :rules="[
-            (val) => !!val || 'O campo é obrigatório.',
-            (val) =>
-              validEndDate() ||
-              'A data final deve ser maior ou igual à data inicial.',
-          ]"
-          label="Data e hora do Fim do Evento*"
-        >
-          <template v-slot:prepend>
-            <q-icon name="event" class="cursor-pointer">
-              <q-popup-proxy
-                cover
-                transition-show="scale"
-                transition-hide="scale"
-              >
-                <q-date
-                  v-model="endDate"
-                  mask="DD-MM-YYYY HH:mm"
-                  :locale="ptLocale"
-                  :rules="[(val) => !!val || 'O campo é obrigatório.']"
-                >
-                  <div class="row items-center justify-end">
-                    <q-btn v-close-popup label="Fechar" color="primary" flat />
-                  </div>
-                </q-date>
-              </q-popup-proxy>
-            </q-icon>
-          </template>
+              <template v-slot:append>
+                <q-icon name="access_time" class="cursor-pointer">
+                  <q-popup-proxy
+                    cover
+                    transition-show="scale"
+                    transition-hide="scale"
+                  >
+                    <q-time
+                      v-model="startDate"
+                      mask="DD-MM-YYYY HH:mm"
+                      format24h
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn
+                          v-close-popup
+                          label="Fechar"
+                          color="primary"
+                          flat
+                        />
+                      </div>
+                    </q-time>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+          </div>
+          <div class="col-6">
+            <q-input
+              v-model="endDate"
+              :rules="[
+                (val) => !!val || 'O campo é obrigatório.',
+                (val) =>
+                  validEndDate() ||
+                  'A data final deve ser maior ou igual à data inicial.',
+              ]"
+              label="Data e hora do Fim do Evento*"
+            >
+              <template v-slot:prepend>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy
+                    cover
+                    transition-show="scale"
+                    transition-hide="scale"
+                  >
+                    <q-date
+                      v-model="endDate"
+                      mask="DD-MM-YYYY HH:mm"
+                      :locale="ptLocale"
+                      :rules="[(val) => !!val || 'O campo é obrigatório.']"
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn
+                          v-close-popup
+                          label="Fechar"
+                          color="primary"
+                          flat
+                        />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
 
-          <template v-slot:append>
-            <q-icon name="access_time" class="cursor-pointer">
-              <q-popup-proxy
-                cover
-                transition-show="scale"
-                transition-hide="scale"
-              >
-                <q-time
-                  v-model="endDate"
-                  mask="DD-MM-YYYY HH:mm"
-                  format24h
-                  :rules="[(val) => !!val || 'O campo é obrigatório.']"
-                >
-                  <div class="row items-center justify-end">
-                    <q-btn v-close-popup label="Fechar" color="primary" flat />
-                  </div>
-                </q-time>
-              </q-popup-proxy>
-            </q-icon>
-          </template>
-        </q-input>
+              <template v-slot:append>
+                <q-icon name="access_time" class="cursor-pointer">
+                  <q-popup-proxy
+                    cover
+                    transition-show="scale"
+                    transition-hide="scale"
+                  >
+                    <q-time
+                      v-model="endDate"
+                      mask="DD-MM-YYYY HH:mm"
+                      format24h
+                      :rules="[(val) => !!val || 'O campo é obrigatório.']"
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn
+                          v-close-popup
+                          label="Fechar"
+                          color="primary"
+                          flat
+                        />
+                      </div>
+                    </q-time>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+          </div>
+        </div>
       </div>
+
       <div class="col-3"></div>
     </div>
 
     <div class="q-ml-xl row items-start">
       <div class="col-3"></div>
       <div class="col-6">
-        <div class="row">
-          <div class="col-4">
+        <div class="row q-col-gutter-lg">
+          <div class="col-5">
             <q-input
               v-model="cep"
               label="CEP*"
@@ -163,10 +196,10 @@
               @blur="pesquisacep"
             />
           </div>
-          <div class="col-3 q-ml-lg">
+          <div class="col-2">
             <q-input v-model="state" label="Estado*" disable />
           </div>
-          <div class="col-4 q-ml-lg">
+          <div class="col-5">
             <q-input v-model="city" label="Cidade*" disable />
           </div>
         </div>
@@ -205,15 +238,15 @@
     <div class="q-ml-xl row items-start">
       <div class="col-3"></div>
       <div class="col-6">
-        <div class="row">
-          <div class="col-5">
+        <div class="row q-col-gutter-lg">
+          <div class="col-6">
             <q-input
               v-model="estimatedAudience"
               label="Público Estimado*"
               :rules="[(val) => !!val || 'O campo é obrigatório.']"
             />
           </div>
-          <div class="col-5 q-ml-xl">
+          <div class="col-6">
             <q-input
               v-model="investEvent"
               label="Investimento*"
@@ -228,11 +261,11 @@
     <div class="q-ml-xl row items-start">
       <div class="col-3"></div>
       <div class="col-6">
-        <div class="row">
-          <div class="col-5">
+        <div class="row q-col-gutter-lg">
+          <div class="col-6">
             <q-input v-model="prodName" label="Produtor" />
           </div>
-          <div class="col-5 q-ml-xl">
+          <div class="col-6">
             <q-input v-model="prodTel" label="Tel. Produtor" />
           </div>
         </div>
@@ -285,18 +318,7 @@
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
               <q-tooltip anchor="center right" self="top right">
-                (a) O evento é contratado diretamente com o Poder Público ou com
-                um intermediário seu, sendo este uma agência ou produtora de
-                eventos licitada, via de regra. (Ex.: Eventos de Prefeituras,
-                Aniversário da Cidade, Carnaval, Festas de São João etc.). (b) O
-                evento é patrocinado mediante o uso de verba de incentivo fiscal
-                cultural ou esportivo (Ex.: Maratonas, Festas Juninas,
-                Oktoberfest, Conexão Skol). (c) Eventos realizados em espaços
-                públicos (ex.: Parques, Praças, Ruas, Avenidas, Parques de
-                Exposições Municipais ou Estaduais, Praias etc.). (d) Eventos
-                realizados em espaços tombados a nível municipal, estadual ou
-                federal. (ex.: Farol da Barra, em Salvador; Cinemateca, em São
-                Paulo; Morro da Urca, no Rio de Janeiro etc.)
+                {{ contratPoderPublico }}
               </q-tooltip>
             </q-icon>
           </div>
@@ -315,18 +337,7 @@
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
               <q-tooltip anchor="center right" self="top right">
-                (a) O evento é contratado diretamente com o poder Público ou com
-                um intermediário seu, sendo este uma agência ou produtora de
-                eventos licitada, via de regra. (Ex.: Eventos de Prefeituras,
-                Aniversário da Cidade, Carnaval, Festas de São João etc.). (b) O
-                evento é patrocinado mediante o uso de verba de incentivo fiscal
-                cultural ou esportivo (Ex.: Maratonas, Festas Juninas,
-                Oktoberfest, Conexão Skol). (c) Eventos realizados em espaços
-                públicos (ex.: Parques, Praças, Ruas, Avenidas, Parques de
-                Exposições Municipais ou Estaduais, Praias etc.). (d) Eventos
-                realizados em espaços tombados a nível municipal, estadual ou
-                federal. (Ex. Farol da Barra, em Salvador; Cinemateca, em São
-                Paulo; Morro da Urca, no Rio de Janeiro etc.)
+                {{ espacioPublico }}
               </q-tooltip>
             </q-icon>
           </div>
@@ -344,8 +355,7 @@
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
               <q-tooltip anchor="center right" self="top right">
-                O evento permite a entrada e a participação de crianças e
-                adolescentes menores de 18 anos de idade.
+                {{ menorIdade }}
               </q-tooltip>
             </q-icon>
           </div>
@@ -362,10 +372,7 @@
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
               <q-tooltip anchor="center right" self="top right">
-                O evento possui alguma atração que exponha a risco elevado algum
-                dos seus participantes ou funcionários próprios ou terceiros.
-                Ex.: Montanha Russa, tirolesa, plataforma elevatória (mirante),
-                etc).
+                {{ actRisco }}
               </q-tooltip>
             </q-icon>
           </div>
@@ -382,8 +389,7 @@
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
               <q-tooltip anchor="center right" self="top right">
-                Há exposição das marcas da companhia na estrutura de palco ou de
-                camarote plotado no evento.
+                {{ marcaEst }}
               </q-tooltip>
             </q-icon>
           </div>
@@ -400,9 +406,7 @@
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
               <q-tooltip anchor="center right" self="top right">
-                A CIA. Não patrocina este tipo de evento em razão de compromisso
-                firmado em prol do consumo responsável no âmbito da associação
-                nacional das cervejarias
+                {{ universitario }}
               </q-tooltip>
             </q-icon>
           </div>
@@ -412,6 +416,7 @@
     </div>
     <div class="row items-center justify-center q-gutter-xl">
       <q-btn
+        no-caps
         color="primary"
         icon="upload"
         label="Upload"
@@ -420,6 +425,7 @@
         @click="showModal = true"
       />
       <q-btn
+        no-caps
         color="primary"
         icon="check"
         label="Salvar"
@@ -489,15 +495,21 @@
             <iframe
               :src="srcFile"
               allow="fullscreen"
-              width="850"
+              width="800"
               height="700"
             ></iframe>
           </div>
         </q-card-section>
 
         <q-card-actions v-show="!isFileShowed" align="center">
-          <q-btn label="Upload" flat color="primary" @click="upload6File" />
-          <q-btn label="Fechar" flat color="primary" v-close-popup />
+          <q-btn
+            no-caps
+            label="Upload"
+            flat
+            color="primary"
+            @click="upload6File"
+          />
+          <q-btn no-caps label="Fechar" flat color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -513,7 +525,7 @@
               <div class="col-12 row items-center">
                 <q-file
                   color="primary"
-                  style="margin-top: -20px; width: 100%"
+                  style="margin-top: 0px; width: 100%"
                   label="Arquivos pdf; .png;"
                   accept=".pdf, .png"
                   v-model="docEvts[docEvts.length - 1].file"
@@ -529,6 +541,7 @@
 
         <q-card-actions v-show="!isFileShowed" align="center">
           <q-btn
+            no-caps
             label="Upload"
             flat
             color="primary"
@@ -536,6 +549,7 @@
             v-close-popup
           />
           <q-btn
+            no-caps
             label="Fechar"
             flat
             color="primary"
@@ -550,14 +564,22 @@
 </template>
 
 <script lang="ts">
-import { Select, Unit, Brand, DocEvt } from 'components/models';
+import { Select, DocEvt, DropDownInfo } from 'components/models';
 import { useQuasar } from 'quasar';
 import { api, axios, baseUrl } from 'src/boot/axios';
 import { date } from 'quasar';
-//import ExampleComponent from 'components/ExampleComponent.vue';
 import { defineComponent, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { ptLocale } from 'src/boot/util';
+import {
+  actRisco,
+  contratPoderPublico,
+  espacioPublico,
+  marcaEst,
+  menorIdade,
+  ptLocale,
+  showAlert,
+  universitario,
+} from 'src/boot/util';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -598,23 +620,12 @@ export default defineComponent({
     const complianceAreaAuthorizationId = ref(null);
     const $q = useQuasar();
     const route = useRoute();
-    /* const isValidEmailx = (): boolean => {
 
-      const emailPattern =
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-      const res = emailPattern.test(email.value);
-      //console.log('pEmail', res);
-      return email.value !=='' && res;
-    }; */
     const validEndDate = (): boolean => {
       const exp =
         date.extractDate(startDate.value, 'DD-MM-YYYY').getTime() <=
         date.extractDate(endDate.value, 'DD-MM-YYYY').getTime();
-      /*
-      console.log(
-        date.extractDate(startDate.value, 'DD-MM-YYYY').getTime(),
-        date.extractDate(endDate.value, 'DD-MM-YYYY').getTime()
-      );*/
+
       return startDate.value !== '' && exp;
     };
 
@@ -633,16 +644,11 @@ export default defineComponent({
       else {
         //CEP não Encontrado.
         limpa_formulário_cep();
-        $q.notify({
-          color: 'negative',
-          position: 'top',
-          message: 'CEP não encontrado.',
-          icon: 'report_problem',
-        });
+        showAlert('CEP não encontrado.');
       }
     }
 
-    const pesquisacep = (val: Event) => {
+    const pesquisacep = () => {
       //console.log("cep", cep.value);
       //Nova variável "cep" somente com dígitos.
       cep.value = cep.value.replace(/\D/g, '');
@@ -672,12 +678,7 @@ export default defineComponent({
         else {
           //cep é inválido.
           limpa_formulário_cep();
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Formato de CEP inválido.',
-            icon: 'report_problem',
-          });
+          showAlert('Formato de CEP inválido.');
         }
       } //end if.
       else {
@@ -687,74 +688,59 @@ export default defineComponent({
     };
 
     async function loadPropietarios() {
-      api
-        .get('/api/Enum/GetEventMakersDropdownItems')
-        .then((response) => {
-          namProp.value = response.data.result.map((o: Unit) => {
-            return { label: o.text, value: o.value };
-          });
-        })
-        .catch(() => {
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Falha ao carregar',
-            icon: 'report_problem',
-          });
+      try {
+        const resp = await api.get('/api/Enum/GetEventMakersDropdownItems');
+        namProp.value = resp.data.result.map((o: DropDownInfo) => {
+          return { label: o.text, value: parseInt(o.value) };
         });
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
     async function loadUnits() {
-      api
-        .get('/api/Enum/GetUnitsDropdownItems')
-        .then((response) => {
-          units.value = response.data.result.map((o: Unit) => {
-            return { label: o.text, value: o.value };
-          });
-        })
-        .catch(() => {
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Falha ao carregar unidades',
-            icon: 'report_problem',
-          });
+      try {
+        const resp = await api.get('api/Enum/GetUnitsDropdownItems');
+        units.value = resp.data.result.map((o: DropDownInfo) => {
+          return { label: o.text, value: parseInt(o.value) };
         });
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar unidades: ${
+            err.response?.data.errorMessage ?? err
+          }`
+        );
+      }
     }
     async function loadBrands() {
-      api
-        .get('/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name')
-        .then((response) => {
-          brands.value = response.data.result.map((o: Brand) => {
-            return { label: o.text, value: o.value };
-          });
-        })
-        .catch(() => {
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Falha ao carregar marcas',
-            icon: 'report_problem',
-          });
+      try {
+        const resp = await api.get(
+          '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name'
+        );
+
+        brands.value = resp.data.result.map((o: DropDownInfo) => {
+          return { label: o.text, value: parseInt(o.value) };
         });
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar marcas: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
     async function submitBrand(data: string) {
-      //show spinner
-      api
-        .post('/api/Brand/Add', { name: data })
-        .then(async (response) => {
-          //console.log("brand ",response);
-          await loadBrands();
-          //select brand
-        })
-        .catch(() => {
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Falha ao adicionar marca',
-            icon: 'report_problem',
-          });
-        });
-      //hide spinner
+      try {
+        const resp = await api.post('/api/Brand/Add', { name: data });
+        await loadBrands();
+        const id = resp.data.result.id;
+        brandMod.value = brands.value?.filter((b) => b.value === id)[0];
+      } catch (err: any) {
+        showAlert(
+          `Falha ao adicionar nova marca: ${
+            err.response?.data.errorMessage ?? err
+          }`
+        );
+      }
     }
     function prompt() {
       $q.dialog({
@@ -784,7 +770,7 @@ export default defineComponent({
         });
     }
 
-    function submitForm(): void {
+    async function submitForm() {
       //console.log('formState', 1);
       const data = {
         Id: route.params.id,
@@ -827,26 +813,16 @@ export default defineComponent({
         complianceAreaAuthorizationId: complianceAreaAuthorizationId.value,
       };
       //console.log("two", data.EventCharterId);
-      api
-        .put(`/api/Event/Update/${route.params.id}`, data)
-        .then((response) => {
-          $q.notify({
-            color: 'positive',
-            position: 'top',
-            message: 'Evento editado com sucesso',
-            icon: 'check',
-          });
-        })
-        .catch(() => {
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Falha ao editar evento',
-            icon: 'report_problem',
-          });
-        });
+      try {
+        await api.put(`/api/Event/Update/${route.params.id}`, data);
+        showAlert('Evento editado com sucesso', true);
+      } catch (err: any) {
+        showAlert(
+          `Falha ao editar evento: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
-    function uploadFile(de: DocEvt) {
+    async function uploadFile(de: DocEvt) {
       const file = de.file;
       if (file != undefined && file.name != '') {
         //console.log("file",JSON.stringify(file), typeof file);
@@ -854,45 +830,35 @@ export default defineComponent({
         formData.append('archive', file);
         formData.append('category', de.category);
 
-        api
-          .post('/api/Archive/UploadArchive', formData)
-          .then((response) => {
-            $q.notify({
-              color: 'positive',
-              position: 'top',
-              message: 'Arquivo enviado com sucesso.',
-              icon: 'check',
-            });
-            de.color = 'orange';
-            de.disabled = false;
-            de.src = baseUrl + '/api/Archive/Show/' + response.data.result;
-            de.docId = parseInt(response.data.result);
-            //console.log("one", de.docId);
-          })
-          .catch((reason) => {
-            $q.notify({
-              color: 'negative',
-              position: 'top',
-              message: 'Falha ao upload arquive.',
-              icon: 'report_problem',
-            });
-          });
+        try {
+          const resp = await api.post('/api/Archive/UploadArchive', formData);
+          showAlert('Arquivo enviado com sucesso.', true);
+          de.color = 'orange';
+          de.disabled = false;
+          de.src = baseUrl + '/api/Archive/Show/' + resp.data.result;
+          de.docId = parseInt(resp.data.result);
+          //console.log("src", de.src);
+        } catch (err: any) {
+          showAlert(
+            `Falha ao upload arquive: ${err.response?.data.errorMessage ?? err}`
+          );
+        }
       }
     }
     // subir los 6 documentos cuando se abre modal en Upload
-    function upload6File() {
+    async function upload6File() {
       const len =
         docEvts.value?.length != undefined ? docEvts.value?.length - 1 : 0;
 
       for (let i = 0; i < len; i++) {
-        if (docEvts.value != undefined) uploadFile(docEvts.value[i]);
+        if (docEvts.value != undefined) await uploadFile(docEvts.value[i]);
       }
     }
 
-    function uploadEmailFile() {
+    async function uploadEmailFile() {
       const last =
         docEvts.value?.length != undefined ? docEvts.value?.length - 1 : 0;
-      if (docEvts.value != undefined) uploadFile(docEvts.value[last]);
+      if (docEvts.value != undefined) await uploadFile(docEvts.value[last]);
     }
 
     const showFileArea = (flag: boolean, src = '') => {
@@ -933,62 +899,59 @@ export default defineComponent({
       if (r1.value) showEmailModal.value = true;
     };
 
-    async function loadEvent() {
-      const id = route.params.id;
-      //console.log("id", id);
-      api
-        .get('/api/Event/GetForEdit/' + id)
-        .then((response) => {
-          //event.value = response.data.result;
-          console.log('event', response.data.result);
-          const r = response.data.result;
-          //fill event data
-          unitMod.value =
-            units.value != undefined ? units.value.filter(u => u.value == r.unit)[0] : undefined;
-          brandMod.value =
-            brands.value != undefined ? brands.value.filter(b => b.value == r.brandId)[0] : undefined;
-          eventName.value = r.name;
-          startDate.value = r.startDate;
-          endDate.value = r.endDate;
-          state.value = r.state;
-          city.value = r.city;
-          cep.value = r.cep;
-          address.value = r.adress;
-          estimatedAudience.value = r.estimatedAudience;
-          investEvent.value = r.invest;
-          prodName.value = r.producerName;
-          prodTel.value = r.producerPhone;
-          email.value = r.producerEmail;
-          namPropMod.value =
-            namProp.value != undefined
-              ? namProp.value.filter(n => n.value == r.carriedOutBy)[0]
-              : undefined;
-          r1.value = r.contractedGovernment;
-          r2.value = r.madePublicSpace;
-          r3.value = r.madewithMinors;
-          r4.value = r.riskActivation;
-          r5.value = r.brandActivation;
-          r6.value = r.universityOpenBar;
+    async function loadEventById(id: string | string[]) {
+      try {
+        const resp = await api.get('/api/Event/GetForEdit/' + id);
+        //console.log('event', response.data.result);
+        const r = resp.data.result;
+        //fill event data
+        unitMod.value =
+          units.value != undefined
+            ? units.value.filter((u) => u.value == r.unit)[0]
+            : undefined;
+        brandMod.value =
+          brands.value != undefined
+            ? brands.value.filter((b) => b.value == r.brandId)[0]
+            : undefined;
+        eventName.value = r.name;
+        startDate.value = r.startDate;
+        endDate.value = r.endDate;
+        state.value = r.state;
+        city.value = r.city;
+        cep.value = r.cep;
+        address.value = r.adress;
+        estimatedAudience.value = r.estimatedAudience;
+        investEvent.value = r.invest;
+        prodName.value = r.producerName;
+        prodTel.value = r.producerPhone;
+        email.value = r.producerEmail;
+        namPropMod.value =
+          namProp.value != undefined
+            ? namProp.value.filter((n) => n.value == r.carriedOutBy)[0]
+            : undefined;
+        r1.value = r.contractedGovernment;
+        r2.value = r.madePublicSpace;
+        r3.value = r.madewithMinors;
+        r4.value = r.riskActivation;
+        r5.value = r.brandActivation;
+        r6.value = r.universityOpenBar;
 
-          r.archives.forEach((a: { category: number; id: number }) => {
-            if (docEvts.value != undefined) {
-              const idx = a.category == 0 ? 6 : a.category == 1 ? 0 : a.category - 2;
-              docEvts.value[idx].docId = a.id;
-              docEvts.value[idx].color = 'orange';
-              docEvts.value[idx].disabled = false;
-              docEvts.value[idx].src = baseUrl + '/api/Archive/Show/' + a.id;
-            }
-          });
-          complianceAreaAuthorizationId.value = r.complianceAreaAuthorizationId;
-        })
-        .catch(() => {
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Falha ao carregar evento',
-            icon: 'report_problem',
-          });
+        r.archives.forEach((a: { category: number; id: number }) => {
+          if (docEvts.value != undefined) {
+            const idx =
+              a.category == 0 ? 6 : a.category == 1 ? 0 : a.category - 2;
+            docEvts.value[idx].docId = a.id;
+            docEvts.value[idx].color = 'orange';
+            docEvts.value[idx].disabled = false;
+            docEvts.value[idx].src = baseUrl + '/api/Archive/Show/' + a.id;
+          }
         });
+        complianceAreaAuthorizationId.value = r.complianceAreaAuthorizationId;
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar evento: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
 
     onMounted(async () => {
@@ -997,7 +960,7 @@ export default defineComponent({
       await loadUnits();
       await loadBrands();
       await loadPropietarios();
-      await loadEvent();
+      await loadEventById(route.params.id);
 
       //console.log("Evts" , docEvts.value);
     });
@@ -1007,7 +970,6 @@ export default defineComponent({
       brands,
       brandMod,
       eventName,
-      //date: ref('2019-02-01 12:44'),
       startDate,
       endDate,
       cep,
@@ -1044,6 +1006,12 @@ export default defineComponent({
       showEmailModal,
       uploadEmailFile,
       handleShowEmailMod,
+      contratPoderPublico,
+      espacioPublico,
+      menorIdade,
+      actRisco,
+      marcaEst,
+      universitario,
     };
   },
 });

@@ -8,12 +8,23 @@ export interface Todo {
 export interface Meta {
   totalCount: number;
 }
-*/
+
 export interface Unit {
   value: number;
   text: string;
 }
 
+export interface Brand {
+  text: string;
+  value: number;
+}
+
+export interface ResObj {
+  category: number;
+  id: number;
+  status: number;
+}
+*/
 export interface Event {
   madePublicSpace: boolean;
   contractedGovernment: boolean;
@@ -36,41 +47,17 @@ export interface Select {
 }
 
 
-export interface Brand {
-  text: string;
-  value: number;
-}
-
 export interface DocEvt {
   color: string;
   disabled: boolean;
   src: string;
-  file: File; //Ref<null>
+  file: File;
   category: string;
   label: string;
   docId: number | null;
   status: number | null;
 }
 
-export interface ResObj {
-  category: number;
-  id: number;
-  status: number;
-}
-
-export interface ChartData {
-    stateId: number;
-    name: string;
-    approvedPercent: number;
-    rejectPercent: number;
-    pendentPercent: number;
-    expiredPercent: number;
-    totalEvent: number;
-    totalApproved: number;
-    totalExpired: number;
-    totalPendent: number;
-    totalReject: number;
-}
 
 export interface Serie {
   name: string;
@@ -92,7 +79,7 @@ export interface DropDownInfo2 {
   id: number;
 }
 
-
+// objecto to request to api
 export interface FilterGrafico
  {
   filter: number;
@@ -104,8 +91,23 @@ export interface FilterGrafico
   brandId: number;
  }
 
+ // response from api
+ export interface ChartData {
+  stateId: number;
+  name: string;
+  approvedPercent: number;
+  rejectPercent: number;
+  pendentPercent: number;
+  expiredPercent: number;
+  totalEvent: number;
+  totalApproved: number;
+  totalExpired: number;
+  totalPendent: number;
+  totalReject: number;
+}
 
-export interface GraficoOneCol {
+// model used in Relatorio audit
+export interface GraficoRelatorio {
   data: FilterGrafico;
   color: string;
   caption: string;

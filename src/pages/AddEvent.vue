@@ -566,7 +566,7 @@
 </template>
 
 <script lang="ts">
-import { Select, Unit, Brand, DocEvt, DropDownInfo } from 'components/models';
+import { Select, DocEvt, DropDownInfo } from 'components/models';
 import { useQuasar } from 'quasar';
 import { api, axios, baseUrl } from 'src/boot/axios';
 import { date } from 'quasar';
@@ -741,8 +741,10 @@ export default defineComponent({
     //add a new brand
     async function submitBrand(data: string) {
       try {
-        await api.post('/api/Brand/Add', { name: data });
+        const resp = await api.post('/api/Brand/Add', { name: data });
         await loadBrands();
+        const id = resp.data.result.id;
+        brandMod.value = brands.value?.filter(b => b.value === id)[0];
       } catch (err: any) {
         showAlert(
           `Falha ao adicionar nova marca: ${
@@ -870,7 +872,7 @@ export default defineComponent({
           //console.log("src", de.src);
         } catch (err: any) {
           showAlert(
-            `Falha ao upload arquive.: ${
+            `Falha ao upload arquive: ${
               err.response?.data.errorMessage ?? err
             }`
           );

@@ -26,9 +26,9 @@
 
 
 <script lang="ts">
-//import { Todo, Meta } from 'components/models';
-//import ExampleComponent from 'components/ExampleComponent.vue';
+/** componente usado en Index y pagina Farol Antigimento */
 import { api } from 'src/boot/axios';
+import { showAlert } from 'src/boot/util';
 import { defineComponent, onMounted, ref } from 'vue';
 import { ChartData, Grafico } from '../models';
 
@@ -42,23 +42,31 @@ export default defineComponent({
     const graficos = ref<Array<Grafico>>([]);
 
     async function loadFarol() {
-      const resp = await api.get<ChartData[]>(
-        '/api/Event/GetFarolAntingimento'
-      );
-      chartDatas.value = resp.data;
-      //console.log(chartDatas.value);
-      chartDatas.value.forEach((cd) => {
-        const porcientos = [];
-        porcientos.push(
-          cd.approvedPercent,
-          cd.pendentPercent,
-          cd.rejectPercent
+      try {
+        const resp = await api.get<ChartData[]>(
+          '/api/Event/GetFarolAntingimento'
         );
-        graficos.value.push({
-          series: [{ name: 'Eventos', data: porcientos }],
-          name: cd.name,
+        chartDatas.value = resp.data;
+        //console.log(chartDatas.value);
+        chartDatas.value.forEach((cd) => {
+          const porcientos = [];
+          porcientos.push(
+            cd.approvedPercent,
+            cd.pendentPercent,
+            cd.rejectPercent
+          );
+          graficos.value.push({
+            series: [{ name: 'Eventos', data: porcientos }],
+            name: cd.name,
+          });
         });
-      });
+      } catch (err: any) {
+        showAlert(
+          `não foi possível exibir gráficos: ${
+            err.response?.data.errorMessage ?? err
+          }`
+        );
+      }
     }
 
     onMounted(async () => {
@@ -147,7 +155,17 @@ export default defineComponent({
           },
         },
         colors: [
-          function ({ value, seriesIndex, dataPointIndex, w } : {value: string; seriesIndex: number, dataPointIndex: number; w: string;}): string {
+          function ({
+            value,
+            seriesIndex,
+            dataPointIndex,
+            w,
+          }: {
+            value: string;
+            seriesIndex: number;
+            dataPointIndex: number;
+            w: string;
+          }): string {
             switch (dataPointIndex) {
               case 0:
                 return '#21BA45';

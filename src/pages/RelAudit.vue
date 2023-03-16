@@ -227,12 +227,11 @@ import {
   Select,
   DropDownInfo,
   DropDownInfo2,
-  Unit,
-  GraficoOneCol,
+  GraficoRelatorio,
   FilterGrafico,
 } from 'components/models';
 import { api } from 'src/boot/axios';
-import { ptLocale } from 'src/boot/util';
+import { ptLocale, showAlert } from 'src/boot/util';
 //import ExampleComponent from 'components/ExampleComponent.vue';
 import { defineComponent, defineAsyncComponent, onMounted, ref } from 'vue';
 const ChartOneCol = defineAsyncComponent(
@@ -284,77 +283,104 @@ export default defineComponent({
       brandId: 0,
     });
 
-    const graficoOneCol = ref<GraficoOneCol>({
+    const graficoOneCol = ref<GraficoRelatorio>({
       data: data.value,
       color: '#21BA45',
       caption: 'Aprovado',
     });
     const componentKey = ref(0); //for update graphic one col
 
-    const graficoThreeCol = ref<GraficoOneCol>({
+    const graficoThreeCol = ref<GraficoRelatorio>({
       data: data.value,
       color: '',
       caption: '',
     });
-    const componentKey3 = ref(0);
+    const componentKey3 = ref(0); //for update graphic three cols
 
     async function loadFilters() {
-      const resp = await api.get('/api/Enum/GetFilterEnventsDropdownItems');
-      filters.value = resp.data.result.map((info: DropDownInfo) => {
-        return { label: info.text, value: parseInt(info.value) };
-      });
-      //filterMod.value = filters.value[0];
-      //console.log(filters.value);
+      try {
+        const resp = await api.get('/api/Enum/GetFilterEnventsDropdownItems');
+        filters.value = resp.data.result.map((info: DropDownInfo) => {
+          return { label: info.text, value: parseInt(info.value) };
+        });
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar filtros: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
     async function loadBrands() {
-      const resp = await api.get(
-        '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name'
-      );
-      brands.value = resp.data.result.map((info: DropDownInfo) => {
-        return { label: info.text, value: parseInt(info.value) };
-      });
-      //console.log(filters.value);
+      try {
+        const resp = await api.get(
+          '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name'
+        );
+
+        brands.value = resp.data.result.map((o: DropDownInfo) => {
+          return { label: o.text, value: parseInt(o.value) };
+        });
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar marcas: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
 
     async function loadRegions() {
-      const resp = await api.get('/api/RegionStateCity/GetRegions');
-      regions.value = resp.data.map((info: DropDownInfo2) => {
-        return { label: info.name, value: info.id };
-      });
-      //console.log(filters.value);
+      try {
+        const resp = await api.get('/api/RegionStateCity/GetRegions');
+        regions.value = resp.data.map((info: DropDownInfo2) => {
+          return { label: info.name, value: info.id };
+        });
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar regiões: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
 
     async function loadStatesByRegion(val: Select) {
-      const resp = await api.get(
-        `/api/RegionStateCity/GetSatesPerRegions?regionID=${val.value}`
-      );
-      states.value = resp.data.map((info: DropDownInfo2) => {
-        return { label: info.name, value: info.id };
-      });
-      //console.log(filters.value);
-      //deselect stte and municipio
-      stateMod.value = undefined;
-      municipioMod.value = undefined;
+      try {
+        const resp = await api.get(
+          `/api/RegionStateCity/GetSatesPerRegions?regionID=${val.value}`
+        );
+        states.value = resp.data.map((info: DropDownInfo2) => {
+          return { label: info.name, value: info.id };
+        });
+        //console.log(filters.value);
+        //deselect stte and municipio
+        stateMod.value = undefined;
+        municipioMod.value = undefined;
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar estados: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
 
     async function loadCitiesByState(val: Select) {
-      const resp = await api.get(
-        `/api/RegionStateCity/GetCitiesPerState?stateID=${val.value}`
-      );
-      municipios.value = resp.data.map((info: DropDownInfo2) => {
-        return { label: info.name, value: info.id };
-      });
-      //console.log(filters.value);
-      municipioMod.value = undefined;
+      try {
+        const resp = await api.get(
+          `/api/RegionStateCity/GetCitiesPerState?stateID=${val.value}`
+        );
+        municipios.value = resp.data.map((info: DropDownInfo2) => {
+          return { label: info.name, value: info.id };
+        });
+        //console.log(filters.value);
+        municipioMod.value = undefined;
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar municípios: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
 
-    const changeStartDate = async (value: any, reason: any, details: any) => {
+    const changeStartDate = (value: any, reason: any, details: any) => {
       //console.log(value);
       //date.value = value;
       graficoOneCol.value.data.startDate = value;
       componentKey3.value++;
     };
-    const changeEndDate = async (value: any, reason: any, details: any) => {
+    const changeEndDate = (value: any, reason: any, details: any) => {
       //console.log(value);
       //date.value = value;
       graficoOneCol.value.data.endDate = value;
@@ -363,18 +389,22 @@ export default defineComponent({
 
     function changeBrand(val: Select) {
       data.value.brandId = val.value;
-
       componentKey3.value++;
     }
 
-    function doRegionalFilter(val: Select){
-      //console.log("ase");
-      data.value.state = stateMod.value != undefined ? stateMod.value?.value : 0 ;
-      data.value.city = municipioMod.value != undefined ? municipioMod.value?.label : '' ;
+    function doRegionalFilter(val: Select) {
+      //console.log("text", stateMod.value?.value ?? 0);
+      data.value.state =
+        stateMod.value != undefined ? stateMod.value?.value : 0;
+      data.value.city =
+        municipioMod.value != undefined ? municipioMod.value?.label : '';
       data.value.unit = unitMod.value != undefined ? +unitMod.value?.value : -1; //-1 means filter toda en caso q no este definido
 
-      if(stateMod.value != undefined && municipioMod.value != undefined)
+      if (stateMod.value != undefined && municipioMod.value != undefined){
+        //filtrar solo cuando municipio y estado este definido
         componentKey3.value++;
+      }
+
     }
 
     function changeFilter(val: Select) {
@@ -392,8 +422,10 @@ export default defineComponent({
           data.value.startDate = startDate.value;
           data.value.endDate = endDate.value;
         } else if (val.value === 4) {
-          data.value.brandId = brandMod.value != undefined ? brandMod.value.value : 0;
-        } else if(val.value === 6){ //regional
+          data.value.brandId =
+            brandMod.value != undefined ? brandMod.value.value : 0;
+        } else if (val.value === 6) {
+          //regional
           //clear region, state, city and units
           regionMod.value = undefined;
           stateMod.value = undefined;
@@ -408,19 +440,24 @@ export default defineComponent({
     }
 
     async function loadUnits() {
-      const resp = await api.get('/api/Enum/GetUnitsDropdownItems');
-      units.value = resp.data.result.map((o: Unit) => {
-        return { label: o.text, value: o.value };
-      });
-      //console.log(filters.value);
+      try {
+        const resp = await api.get('api/Enum/GetUnitsDropdownItems');
+        units.value = resp.data.result.map((o: DropDownInfo) => {
+          return { label: o.text, value: parseInt(o.value) };
+        });
+      } catch (err: any) {
+        showAlert(
+          `Falha ao carregar unidades: ${
+            err.response?.data.errorMessage ?? err
+          }`
+        );
+      }
     }
 
     onMounted(async () => {
       await loadFilters();
       await loadBrands();
       await loadRegions();
-      //await loadStatesByRegion(3);
-      //await loadCitiesByState(1);
       await loadUnits();
     });
 
