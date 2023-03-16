@@ -741,35 +741,15 @@ export default defineComponent({
     //add a new brand
     async function submitBrand(data: string) {
       try {
-        const resp = await api.get(
-          '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name'
-        );
-
-        brands.value = resp.data.result.map((o: DropDownInfo) => {
-          return { label: o.text, value: parseInt(o.value) };
-        });
+        await api.post('/api/Brand/Add', { name: data });
+        await loadBrands();
       } catch (err: any) {
         showAlert(
-          `Falha ao carregar marcas: ${err.response?.data.errorMessage ?? err}`
+          `Falha ao adicionar nova marca: ${
+            err.response?.data.errorMessage ?? err
+          }`
         );
       }
-      
-      api
-        .post('/api/Brand/Add', { name: data })
-        .then(async (response) => {
-          //console.log("brand ",response);
-          await loadBrands();
-          //select brand
-        })
-        .catch(() => {
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Falha ao adicionar marca',
-            icon: 'report_problem',
-          });
-        });
-      //hide spinner
     }
     function prompt() {
       $q.dialog({
@@ -799,7 +779,7 @@ export default defineComponent({
         });
     }
 
-    function submitForm(): void {
+    async function submitForm() {
       //console.log('formState', 1);
       const data = {
         Unit: unitMod.value != undefined ? +unitMod.value.value : 0,
@@ -817,7 +797,7 @@ export default defineComponent({
         ProducerPhone: prodTel.value,
         ProducerEmail: email.value,
         CarriedOutBy:
-          namPropMod.value != undefined ? +namPropMod.value.value : 0, //.value?.value,
+          namPropMod.value != undefined ? +namPropMod.value.value : 0,
         ContractedGovernment: r1.value,
         MadePublicSpace: r2.value,
         MadewithMinors: r3.value,
@@ -839,97 +819,77 @@ export default defineComponent({
         SponsorshipAgreementId:
           docEvts.value != undefined ? docEvts.value[5].docId : null,
       };
-      api
-        .post('/api/Event/Add', data)
-        .then((response) => {
-          //clear data
-          unitMod.value = undefined;
-          brandMod.value = undefined;
-          (eventName.value = ''),
-            (startDate.value = ''),
-            (endDate.value = ''),
-            (state.value = ''),
-            (city.value = ''),
-            (cep.value = ''),
-            (address.value = ''),
-            (estimatedAudience.value = ''),
-            (investEvent.value = ''),
-            (prodName.value = ''),
-            (prodTel.value = ''),
-            (email.value = ''),
-            (namPropMod.value = undefined),
-            (r1.value = false),
-            (r2.value = false),
-            (r3.value = false),
-            (r4.value = false),
-            (r5.value = false),
-            (r6.value = false),
-            // ValidationEmailArchiveId= null, // parseInt($("#ValidationEmailArchiveId").val()),
-            docEvts.value?.forEach((de) => (de.docId = null));
-          //end clear data
-
-          $q.notify({
-            color: 'positive',
-            position: 'top',
-            message: 'Evento adicionado com sucesso',
-            icon: 'check',
-          });
-        })
-        .catch(() => {
-          $q.notify({
-            color: 'negative',
-            position: 'top',
-            message: 'Falha ao adicionar evento',
-            icon: 'report_problem',
-          });
-        });
+      try {
+        await api.post('/api/Event/Add', data);
+        //clear data
+        unitMod.value = undefined;
+        brandMod.value = undefined;
+        (eventName.value = ''),
+          (startDate.value = ''),
+          (endDate.value = ''),
+          (state.value = ''),
+          (city.value = ''),
+          (cep.value = ''),
+          (address.value = ''),
+          (estimatedAudience.value = ''),
+          (investEvent.value = ''),
+          (prodName.value = ''),
+          (prodTel.value = ''),
+          (email.value = ''),
+          (namPropMod.value = undefined),
+          (r1.value = false),
+          (r2.value = false),
+          (r3.value = false),
+          (r4.value = false),
+          (r5.value = false),
+          (r6.value = false),
+          // ValidationEmailArchiveId= null, // parseInt($("#ValidationEmailArchiveId").val()),
+          docEvts.value?.forEach((de) => (de.docId = null));
+        //end clear data
+        showAlert('Evento adicionado com sucesso', true);
+      } catch (err: any) {
+        showAlert(
+          `Falha ao adicionar evento: ${err.response?.data.errorMessage ?? err}`
+        );
+      }
     }
-    function uploadFile(de: DocEvt) {
+    async function uploadFile(de: DocEvt) {
       const file = de.file;
       if (file != undefined && file.name != '') {
         //console.log("file",JSON.stringify(file), typeof file);
         var formData = new FormData();
         formData.append('archive', file);
         formData.append('category', de.category);
-
-        api
-          .post('/api/Archive/UploadArchive', formData)
-          .then((response) => {
-            $q.notify({
-              color: 'positive',
-              position: 'top',
-              message: 'Arquivo enviado com sucesso.',
-              icon: 'check',
-            });
-            de.color = 'orange';
-            de.disabled = false;
-            de.src = baseUrl + '/api/Archive/Show/' + response.data.result;
-            de.docId = parseInt(response.data.result);
-            //console.log("src", de.src);
-          })
-          .catch((reason) => {
-            $q.notify({
-              color: 'negative',
-              position: 'top',
-              message: 'Falha ao upload arquive.',
-              icon: 'report_problem',
-            });
-          });
+        try {
+          const resp = await api.post('/api/Archive/UploadArchive', formData);
+          showAlert('Arquivo enviado com sucesso.', true);
+          de.color = 'orange';
+          de.disabled = false;
+          de.src = baseUrl + '/api/Archive/Show/' + resp.data.result;
+          de.docId = parseInt(resp.data.result);
+          //console.log("src", de.src);
+        } catch (err: any) {
+          showAlert(
+            `Falha ao upload arquive.: ${
+              err.response?.data.errorMessage ?? err
+            }`
+          );
+        }
       }
     }
     // subir los 6 documentos cuando se abre modal en Upload
-    function upload6File() {
+    async function upload6File() {
       const len =
         docEvts.value?.length != undefined ? docEvts.value?.length - 1 : 0;
       for (let i = 0; i < len; i++) {
-        if (docEvts.value != undefined) uploadFile(docEvts.value[i]);
+        if (docEvts.value != undefined) await uploadFile(docEvts.value[i]);
       }
     }
 
-    function uploadEmailFile() {
+    async function uploadEmailFile() {
       const last =
         docEvts.value?.length != undefined ? docEvts.value?.length - 1 : 0;
-      if (docEvts.value != undefined) uploadFile(docEvts.value[last]);
+      if (docEvts.value != undefined) await uploadFile(docEvts.value[last]);
     }
 
     const showFileArea = (flag: boolean, src = '') => {
@@ -984,7 +944,6 @@ export default defineComponent({
       brands,
       brandMod,
       eventName,
-      //date: ref('2019-02-01 12:44'),
       startDate,
       endDate,
       cep,

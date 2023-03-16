@@ -550,7 +550,7 @@
 </template>
 
 <script lang="ts">
-import { ResObj, Select, Unit, Brand, DocEvt } from 'components/models';
+import { Select, Unit, Brand, DocEvt } from 'components/models';
 import { useQuasar } from 'quasar';
 import { api, axios, baseUrl } from 'src/boot/axios';
 import { date } from 'quasar';
