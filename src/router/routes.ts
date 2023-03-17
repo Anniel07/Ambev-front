@@ -1,4 +1,5 @@
-import { RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import { registerGuard } from './Guard';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -23,5 +24,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('pages/ErrorNotFound.vue'),
   },
 ];
+/*
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+});
+*/
+//registerGuard(router);
 
 export default routes;

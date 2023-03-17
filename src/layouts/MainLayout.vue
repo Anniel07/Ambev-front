@@ -39,6 +39,14 @@
           </q-list>
         </q-btn-dropdown>
         <q-btn
+          icon="check"
+          no-caps
+          flat
+          rounded
+          label="Login red"
+          @click="loginRedirect"
+        ></q-btn>
+        <q-btn
           icon="area_chart"
           no-caps
           flat
@@ -108,6 +116,11 @@
 import { defineComponent, ref } from 'vue';
 //import EssentialLink from 'components/EssentialLink.vue';
 
+import { useMsal } from '../composition-api/useMsal';
+import { loginRequest } from "../authConfig";
+/*
+
+*/
 const linksList = [
   {
     title: 'Docs',
@@ -163,12 +176,21 @@ export default defineComponent({
   setup() {
     const leftDrawerOpen = ref(false);
 
+    const { instance } = useMsal();
+
+
+
+    const loginRedirect = () => {
+      instance.loginRedirect(loginRequest);
+    }
+
     return {
       essentialLinks: linksList,
       leftDrawerOpen,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
       },
+      loginRedirect,
     };
   },
 });

@@ -5,6 +5,7 @@ import {
   createWebHashHistory,
   createWebHistory,
 } from 'vue-router';
+import { registerGuard } from './Guard';
 import routes from './routes';
 
 /*
@@ -32,6 +33,8 @@ export default route(function (/* { store, ssrContext } */) {
       process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE
     ),
   });
+
+  //registerGuard(Router);
 
   return Router;
 });
