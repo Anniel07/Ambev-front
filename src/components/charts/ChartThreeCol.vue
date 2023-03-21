@@ -25,8 +25,13 @@
 //import ExampleComponent from 'components/ExampleComponent.vue';
 import { api } from 'src/boot/axios';
 import { showAlert } from 'src/boot/util';
-import { defineComponent, onMounted, PropType, ref } from 'vue';
 import { ChartData, Grafico, GraficoRelatorio } from '../models';
+
+import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
+import { callGetApi, callPostApi } from 'src/utils/MsGraphApiCall';
+import { defineComponent, onMounted, PropType, ref, watch } from 'vue';
+import { InteractionType } from '@azure/msal-browser';
+import { loginRequest } from 'src/authConfig';
 
 export default defineComponent({
   name: 'FarolChart',
@@ -40,22 +45,25 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const { result, acquireToken } = useMsalAuthentication(InteractionType.Redirect, loginRequest);
     //console.log("props", props);
     const chartDatas = ref<Array<ChartData>>([]);
     const graficos = ref<Array<Grafico>>([]);
 
-    async function loadGraficos() {
+    async function loadGraficos(apiResult: any) {
 
       const temp = props.graficoThreeCol.data;
       //console.log(temp.filter,temp.city,  temp.state); //no hacer peticion cuando es regional hasta defnir todos los campos
       if(temp.filter === 6 && (temp.city == undefined || temp.city == '' || temp.state == undefined || temp.state < 0))
         return;
       try {
-        const resp = await api.post<ChartData[]>(
+        /* const resp = await api.post<ChartData[]>(
           '/api/Event/GetEventsInfo',
           props.graficoThreeCol.data
-        );
-        chartDatas.value = resp.data;
+        ); */
+         if(!apiResult.data)
+          throw apiResult;
+        chartDatas.value = apiResult.data;
         //console.log(props.graficoThreeCol.data.filter);
         chartDatas.value.forEach((cd) => {
           const porcientos = [];
@@ -79,8 +87,25 @@ export default defineComponent({
       }
     }
 
-    onMounted(async () => {
+    /* onMounted(async () => {
       await loadGraficos();
+    }); */
+    async function updateData() {
+      if (result.value != undefined && result.value.accessToken) {
+        const apiResult = await callPostApi(result.value.accessToken, '/api/Event/GetEventsInfo',
+         props.graficoThreeCol.data).catch(() =>
+          acquireToken()
+        );
+        await loadGraficos(apiResult);
+        //console.log('api result' , data.value);
+      }
+    }
+
+    updateData();
+
+    watch(result, () => {
+      // Fetch new data from the API each time the result changes (i.e. a new access token was acquired)
+      updateData();
     });
     return {
       chartDatas,

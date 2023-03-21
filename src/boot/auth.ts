@@ -14,7 +14,11 @@ import router from '../router/routes';
 //const navigationClient = new CustomNavigationClient(router);
 //msalInstance.setNavigationClient(navigationClient);
 
-// Account selection logic is app dependent. Adjust as needed for different use cases.
+
+
+export default boot(({ app }) => {
+
+  // Account selection logic is app dependent. Adjust as needed for different use cases.
 const accounts = msalInstance.getAllAccounts();
 if (accounts.length > 0) {
     msalInstance.setActiveAccount(accounts[0]);
@@ -27,8 +31,6 @@ msalInstance.addEventCallback((event) => {
   }
 });
 
-
-export default boot(({ app }) => {
 
   app.use(msalPlugin, msalInstance);
 })

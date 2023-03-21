@@ -12,13 +12,13 @@ export function registerGuard(router: Router) {
             const shouldProceed = await isAuthenticated(msalInstance, InteractionType.Redirect, request);
             return shouldProceed || '/failed';
         }
-    
+
         return true;
     });
 }
 
-export async function isAuthenticated(instance: PublicClientApplication, interactionType: InteractionType, loginRequest: PopupRequest|RedirectRequest): Promise<boolean> {    
-    // If your application uses redirects for interaction, handleRedirectPromise must be called and awaited on each page load before determining if a user is signed in or not  
+export async function isAuthenticated(instance: PublicClientApplication, interactionType: InteractionType, loginRequest: PopupRequest|RedirectRequest): Promise<boolean> {
+    // If your application uses redirects for interaction, handleRedirectPromise must be called and awaited on each page load before determining if a user is signed in or not
     return instance.handleRedirectPromise().then(() => {
         const accounts = instance.getAllAccounts();
         if (accounts.length > 0) {
@@ -33,6 +33,7 @@ export async function isAuthenticated(instance: PublicClientApplication, interac
                 return false;
             })
         } else if (interactionType === InteractionType.Redirect) {
+          console.log('Hllo');
             return instance.loginRedirect(loginRequest).then(() => {
                 return true;
             }).catch(() => {

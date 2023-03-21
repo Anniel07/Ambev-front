@@ -34,7 +34,7 @@ export default route(function (/* { store, ssrContext } */) {
     ),
   });
 
-  //registerGuard(Router);
+  registerGuard(Router);
 
   return Router;
 });

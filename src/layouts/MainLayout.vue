@@ -25,27 +25,20 @@
         <q-btn icon="home" to="/" no-caps flat rounded label="Início"></q-btn>
         <q-btn-dropdown no-caps flat rounded label="Eventos">
           <q-list>
-            <q-item to="/add-eventos"  v-close-popup>
+            <q-item to="/add-eventos" v-close-popup>
               <q-item-section>
                 <q-item-label>Cadastrar evento</q-item-label>
               </q-item-section>
             </q-item>
 
-            <q-item to="/lista-eventos" clickable v-close-popup >
+            <q-item to="/lista-eventos" clickable v-close-popup>
               <q-item-section>
                 <q-item-label>Lista de eventos</q-item-label>
               </q-item-section>
             </q-item>
           </q-list>
         </q-btn-dropdown>
-        <q-btn
-          icon="check"
-          no-caps
-          flat
-          rounded
-          label="Login red"
-          @click="loginRedirect"
-        ></q-btn>
+
         <q-btn
           icon="area_chart"
           no-caps
@@ -62,13 +55,17 @@
           label="Relatório de Auditoria"
           to="/relatorio-auditoria"
         ></q-btn>
+        <!-- <q-btn label="Login" @click="loginRedirect" /> -->
+
         <q-btn
           icon="power_settings_new"
           no-caps
           flat
           rounded
           label="Sair"
+          @click="logoutRedirect"
         ></q-btn>
+        <span v-if="!!name">Bem-vindo, {{ name }}</span>
       </q-toolbar>
     </q-header>
 
@@ -102,7 +99,7 @@
           src="../assets/images/ambev-logo-branco.png"
           style="width: 200px; height: 44px"
         ></q-img>
-       <!--  <q-space /> -->
+        <!--  <q-space /> -->
         <q-img
           src="../assets/images/img_agence.png"
           style="width: 90px; height: 25px"
@@ -113,11 +110,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { computed, defineComponent, onMounted, ref, watch } from 'vue';
 //import EssentialLink from 'components/EssentialLink.vue';
 
 import { useMsal } from '../composition-api/useMsal';
-import { loginRequest } from "../authConfig";
+import { loginRequest } from '../authConfig';
+import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
+import { InteractionType } from '@azure/msal-browser';
+import { callGetApi } from '../utils/MsGraphApiCall';
+
 /*
 
 */
@@ -174,15 +175,65 @@ export default defineComponent({
   },
 
   setup() {
+
+    // const { result, acquireToken } = useMsalAuthentication(
+    //   InteractionType.Redirect,
+    //   loginRequest
+    // );
+
+    // const data = ref(null);
+
+    // async function updateData() {
+    //   if (result.value != undefined && result.value.accessToken) {
+    //     const apiResult = await callGetApi(result.value.accessToken, '/api/Event/GetFarolAntingimento').catch(() =>
+    //       acquireToken()
+    //     );
+    //     data.value = apiResult;
+    //     console.log('api result' , data.value);
+    //   }
+    // }
+
+    // updateData();
+
+    // watch(result, () => {
+    //   // Fetch new data from the API each time the result changes (i.e. a new access token was acquired)
+    //   updateData();
+    // });
+
+
+
     const leftDrawerOpen = ref(false);
 
     const { instance } = useMsal();
-
-
+    const { accounts } = useMsal();
 
     const loginRedirect = () => {
       instance.loginRedirect(loginRequest);
-    }
+    };
+
+    const loginPopup = () => {
+      instance.loginPopup(loginRequest);
+    };
+
+    const logoutPopup = () => {
+      instance.logoutPopup({
+        mainWindowRedirectUri: '/',
+      });
+    };
+    const logoutRedirect = () => {
+      instance.logoutRedirect();
+    };
+    const name = computed(() => {
+      if (accounts.value.length > 0) {
+        const name = accounts.value[0].name;
+        if (name) {
+          return name.split(' ')[0];
+        }
+      }
+      return '';
+    });
+
+
 
     return {
       essentialLinks: linksList,
@@ -191,6 +242,10 @@ export default defineComponent({
         leftDrawerOpen.value = !leftDrawerOpen.value;
       },
       loginRedirect,
+      loginPopup,
+      logoutPopup,
+      logoutRedirect,
+      name,
     };
   },
 });
@@ -200,3 +255,4 @@ export default defineComponent({
 .myfooter
   background-color: $orange
 </style>
+

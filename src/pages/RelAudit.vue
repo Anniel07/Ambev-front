@@ -233,7 +233,19 @@ import {
 import { api } from 'src/boot/axios';
 import { ptLocale, showAlert } from 'src/boot/util';
 //import ExampleComponent from 'components/ExampleComponent.vue';
-import { defineComponent, defineAsyncComponent, onMounted, ref } from 'vue';
+import {
+  defineComponent,
+  defineAsyncComponent,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
+
+import { callGetApi } from 'src/utils/MsGraphApiCall';
+import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
+import { InteractionType } from '@azure/msal-browser';
+import { loginRequest } from 'src/authConfig';
+
 const ChartOneCol = defineAsyncComponent(
   () => import('components/charts/ChartOneCol.vue')
 );
@@ -249,6 +261,10 @@ export default defineComponent({
     ChartThreeCol,
   },
   setup() {
+    const { result, acquireToken } = useMsalAuthentication(
+      InteractionType.Redirect,
+      loginRequest
+    );
     const filters = ref<Select[]>();
     const filterMod = ref<Select>();
     const startDate = ref('');
@@ -299,8 +315,13 @@ export default defineComponent({
 
     async function loadFilters() {
       try {
-        const resp = await api.get('/api/Enum/GetFilterEnventsDropdownItems');
-        filters.value = resp.data.result.map((info: DropDownInfo) => {
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken, '/api/Enum/GetFilterEnventsDropdownItems');
+
+        if(!apiResult.data)
+          throw apiResult;
+        //const resp = await api.get('/api/Enum/GetFilterEnventsDropdownItems');
+        filters.value = apiResult.data.result.map((info: DropDownInfo) => {
           return { label: info.text, value: parseInt(info.value) };
         });
       } catch (err: any) {
@@ -311,11 +332,16 @@ export default defineComponent({
     }
     async function loadBrands() {
       try {
-        const resp = await api.get(
-          '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name'
-        );
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken, '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name');
 
-        brands.value = resp.data.result.map((o: DropDownInfo) => {
+        if(!apiResult.data)
+          throw apiResult;
+        /* const resp = await api.get(
+          '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name'
+        ); */
+
+        brands.value = apiResult.data.result.map((o: DropDownInfo) => {
           return { label: o.text, value: parseInt(o.value) };
         });
       } catch (err: any) {
@@ -327,8 +353,13 @@ export default defineComponent({
 
     async function loadRegions() {
       try {
-        const resp = await api.get('/api/RegionStateCity/GetRegions');
-        regions.value = resp.data.map((info: DropDownInfo2) => {
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken, '/api/RegionStateCity/GetRegions');
+
+        if(!apiResult.data)
+          throw apiResult;
+        //const resp = await api.get('/api/RegionStateCity/GetRegions');
+        regions.value = apiResult.data.map((info: DropDownInfo2) => {
           return { label: info.name, value: info.id };
         });
       } catch (err: any) {
@@ -340,10 +371,15 @@ export default defineComponent({
 
     async function loadStatesByRegion(val: Select) {
       try {
-        const resp = await api.get(
-          `/api/RegionStateCity/GetSatesPerRegions?regionID=${val.value}`
-        );
-        states.value = resp.data.map((info: DropDownInfo2) => {
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken,  `/api/RegionStateCity/GetSatesPerRegions?regionID=${val.value}`);
+
+        if(!apiResult.data)
+          throw apiResult;
+        // const resp = await api.get(
+        //   `/api/RegionStateCity/GetSatesPerRegions?regionID=${val.value}`
+        // );
+        states.value = apiResult.data.map((info: DropDownInfo2) => {
           return { label: info.name, value: info.id };
         });
         //console.log(filters.value);
@@ -359,17 +395,24 @@ export default defineComponent({
 
     async function loadCitiesByState(val: Select) {
       try {
-        const resp = await api.get(
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken,  `/api/RegionStateCity/GetCitiesPerState?stateID=${val.value}`);
+
+        if(!apiResult.data)
+          throw apiResult;
+        /* const resp = await api.get(
           `/api/RegionStateCity/GetCitiesPerState?stateID=${val.value}`
-        );
-        municipios.value = resp.data.map((info: DropDownInfo2) => {
+        ); */
+        municipios.value = apiResult.data.map((info: DropDownInfo2) => {
           return { label: info.name, value: info.id };
         });
         //console.log(filters.value);
         municipioMod.value = undefined;
       } catch (err: any) {
         showAlert(
-          `Falha ao carregar municípios: ${err.response?.data.errorMessage ?? err}`
+          `Falha ao carregar municípios: ${
+            err.response?.data.errorMessage ?? err
+          }`
         );
       }
     }
@@ -400,11 +443,10 @@ export default defineComponent({
         municipioMod.value != undefined ? municipioMod.value?.label : '';
       data.value.unit = unitMod.value != undefined ? +unitMod.value?.value : -1; //-1 means filter toda en caso q no este definido
 
-      if (stateMod.value != undefined && municipioMod.value != undefined){
+      if (stateMod.value != undefined && municipioMod.value != undefined) {
         //filtrar solo cuando municipio y estado este definido
         componentKey3.value++;
       }
-
     }
 
     function changeFilter(val: Select) {
@@ -441,8 +483,13 @@ export default defineComponent({
 
     async function loadUnits() {
       try {
-        const resp = await api.get('api/Enum/GetUnitsDropdownItems');
-        units.value = resp.data.result.map((o: DropDownInfo) => {
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken,  'api/Enum/GetUnitsDropdownItems');
+
+        if(!apiResult.data)
+          throw apiResult;
+        //const resp = await api.get('api/Enum/GetUnitsDropdownItems');
+        units.value = apiResult.data.result.map((o: DropDownInfo) => {
           return { label: o.text, value: parseInt(o.value) };
         });
       } catch (err: any) {
@@ -454,11 +501,30 @@ export default defineComponent({
       }
     }
 
-    onMounted(async () => {
+    /*     onMounted(async () => {
       await loadFilters();
       await loadBrands();
       await loadRegions();
       await loadUnits();
+    }); */
+
+    async function updateData() {
+      if (result.value != undefined && result.value.accessToken) {
+        // let apiResult = await callGetApi(result.value.accessToken, '/api/Enum/GetUnitsDropdownItems').catch(() =>
+        //   acquireToken()
+        // );
+        await loadFilters();
+        await loadBrands();
+        await loadRegions();
+        await loadUnits();
+      }
+    }
+
+    updateData();
+
+    watch(result, () => {
+      // Fetch new data from the API each time the result changes (i.e. a new access token was acquired)
+      updateData();
     });
 
     return {

@@ -79,83 +79,86 @@
     <p class="col-4">Naming ou Proprietário?:</p>
     <p class="col-8">{{ event?.carriedOutBy }}</p>
   </div>
+  <!--- wrapper -->
+  <div v-if="event">
+    <div class="q-ml-xl row items-start" style="margin-left: 300px">
+      <div class="text-h6 col-5">Contratação com o Poder Público?*</div>
+      <div class="col-2">
+        <q-toggle v-model="event.contractedGovernment" disable />
+      </div>
+      <div class="col-2">
+        <q-icon size="xs" name="help" color="negative">
+          <q-tooltip anchor="center right" self="top right">
+            {{ contratPoderPublico }}
+          </q-tooltip>
+        </q-icon>
+      </div>
+    </div>
 
-  <div class="q-ml-xl row items-start" style="margin-left: 300px">
-    <div class="text-h6 col-5">Contratação com o Poder Público?*</div>
-    <div class="col-2"><q-toggle v-model="r1" disable /></div>
-    <div class="col-2">
-      <q-icon size="xs" name="help" color="negative">
-        <q-tooltip anchor="center right" self="top right">
-          {{ contratPoderPublico }}
-        </q-tooltip>
-      </q-icon>
+    <div class="q-ml-xl row items-start" style="margin-left: 300px">
+      <div class="text-h6 col-5">Evento realizado em espaço público?</div>
+      <div class="col-2"><q-toggle v-model="event.madePublicSpace" disable /></div>
+      <div class="col-2">
+        <q-icon size="xs" name="help" color="negative">
+          <q-tooltip anchor="center right" self="top right">
+            {{ espacioPublico }}
+          </q-tooltip>
+        </q-icon>
+      </div>
     </div>
-  </div>
 
-  <div class="q-ml-xl row items-start" style="margin-left: 300px">
-    <div class="text-h6 col-5">Evento realizado em espaço público?</div>
-    <div class="col-2"><q-toggle v-model="r2" disable /></div>
-    <div class="col-2">
-      <q-icon size="xs" name="help" color="negative">
-        <q-tooltip anchor="center right" self="top right">
-          {{ espacioPublico }}
-        </q-tooltip>
-      </q-icon>
+    <div class="q-ml-xl row items-start" style="margin-left: 300px">
+      <div class="text-h6 col-5">Eventos com menores de idade?</div>
+      <div class="col-2"><q-toggle v-model="event.madewithMinors" disable /></div>
+      <div class="col-2">
+        <q-icon size="xs" name="help" color="negative">
+          <q-tooltip anchor="center right" self="top right">
+            {{ menorIdade }}
+          </q-tooltip>
+        </q-icon>
+      </div>
+    </div>
+    <div class="q-ml-xl row items-start" style="margin-left: 300px">
+      <div class="text-h6 col-5">Ativação de risco?</div>
+      <div class="col-2"><q-toggle v-model="event.riskActivation" disable /></div>
+      <div class="col-2">
+        <q-icon size="xs" name="help" color="negative">
+          <q-tooltip anchor="center right" self="top right">
+            {{ actRisco }}
+          </q-tooltip>
+        </q-icon>
+      </div>
+    </div>
+    <div class="q-ml-xl row items-start" style="margin-left: 300px">
+      <div class="text-h6 col-5">Ativação de marca em estrutura montada?</div>
+      <div class="col-2"><q-toggle v-model="event.brandActivation" disable /></div>
+      <div class="col-2">
+        <q-icon size="xs" name="help" color="negative">
+          <q-tooltip anchor="center right" self="top right">
+            {{ actRisco }}
+          </q-tooltip>
+        </q-icon>
+      </div>
+    </div>
+    <div class="q-ml-xl row items-start" style="margin-left: 300px">
+      <div class="text-h6 col-5">Universitário Open Bar?</div>
+      <div class="col-2"><q-toggle v-model="event.universityOpenBar" disable /></div>
+      <div class="col-2">
+        <q-icon size="xs" name="help" color="negative">
+          <q-tooltip anchor="center right" self="top right">
+            {{ universitario }}
+          </q-tooltip>
+        </q-icon>
+      </div>
     </div>
   </div>
-
-  <div class="q-ml-xl row items-start" style="margin-left: 300px">
-    <div class="text-h6 col-5">Eventos com menores de idade?</div>
-    <div class="col-2"><q-toggle v-model="r3" disable /></div>
-    <div class="col-2">
-      <q-icon size="xs" name="help" color="negative">
-        <q-tooltip anchor="center right" self="top right">
-          {{ menorIdade }}
-        </q-tooltip>
-      </q-icon>
-    </div>
-  </div>
-  <div class="q-ml-xl row items-start" style="margin-left: 300px">
-    <div class="text-h6 col-5">Ativação de risco?</div>
-    <div class="col-2"><q-toggle v-model="r4" disable /></div>
-    <div class="col-2">
-      <q-icon size="xs" name="help" color="negative">
-        <q-tooltip anchor="center right" self="top right">
-          {{ actRisco }}
-        </q-tooltip>
-      </q-icon>
-    </div>
-  </div>
-  <div class="q-ml-xl row items-start" style="margin-left: 300px">
-    <div class="text-h6 col-5">Ativação de marca em estrutura montada?</div>
-    <div class="col-2"><q-toggle v-model="r5" disable /></div>
-    <div class="col-2">
-      <q-icon size="xs" name="help" color="negative">
-        <q-tooltip anchor="center right" self="top right">
-          {{ actRisco }}
-        </q-tooltip>
-      </q-icon>
-    </div>
-  </div>
-  <div class="q-ml-xl row items-start" style="margin-left: 300px">
-    <div class="text-h6 col-5">Universitário Open Bar?</div>
-    <div class="col-2"><q-toggle v-model="r6" disable /></div>
-    <div class="col-2">
-      <q-icon size="xs" name="help" color="negative">
-        <q-tooltip anchor="center right" self="top right">
-          {{ universitario }}
-        </q-tooltip>
-      </q-icon>
-    </div>
-  </div>
-
   <br />
 </template>
 
 <script lang="ts">
 import { Event } from 'components/models';
 //import ExampleComponent from 'components/ExampleComponent.vue';
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, ref, watch } from 'vue';
 import { api } from 'boot/axios';
 import { useRoute } from 'vue-router';
 import {
@@ -167,6 +170,10 @@ import {
   showAlert,
   universitario,
 } from 'src/boot/util';
+import { callGetApi } from 'src/utils/MsGraphApiCall';
+import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
+import { InteractionType } from '@azure/msal-browser';
+import { loginRequest } from 'src/authConfig';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -174,29 +181,18 @@ export default defineComponent({
     /*ExampleComponent*/
   },
   setup() {
+    const { result, acquireToken } = useMsalAuthentication(InteractionType.Redirect, loginRequest);
     const route = useRoute();
 
     const event = ref<Event>();
-    const r1 = ref(false);
-    const r2 = ref(false);
-    const r3 = ref(false);
-    const r4 = ref(false);
-    const r5 = ref(false);
-    const r6 = ref(false);
 
-    async function loadEventById(id: string | string[]) {
+    async function loadEventById(apiResult: any) {
       try {
-        const resp = await api.get('/api/Event/GetById/' + id);
-        event.value = resp.data.result;
-        if (event.value != undefined) {
-          r1.value = event.value.contractedGovernment;
-          r2.value = event.value.madePublicSpace;
-          r3.value = event.value.madewithMinors;
-          r4.value = event.value.riskActivation;
-          r5.value = event.value.brandActivation;
-          r6.value = event.value.universityOpenBar;
-          //console.log("add",event.value.adress);
-        }
+        //const resp = await api.get('/api/Event/GetById/' + id);
+        if(!apiResult.data)
+          throw apiResult;
+        event.value = apiResult.data.result;
+        //event.value = resp.data.result;
       } catch (err: any) {
         showAlert(
           `Falha ao carregar evento: ${err.response?.data.errorMessage ?? err}`
@@ -204,18 +200,29 @@ export default defineComponent({
       }
     }
 
-    onMounted(async () => {
-      await loadEventById(route.params.id);
+    // onMounted(async () => {
+    //   await loadEventById(route.params.id);
+    // });
+
+    async function updateData() {
+      if (result.value != undefined && result.value.accessToken) {
+        const apiResult = await callGetApi(result.value.accessToken, `/api/Event/GetById/${route.params.id}`).catch(() =>
+          acquireToken()
+        );
+        await loadEventById(apiResult);
+        //console.log('api result' , data.value);
+      }
+    }
+
+    updateData();
+
+    watch(result, () => {
+      // Fetch new data from the API each time the result changes (i.e. a new access token was acquired)
+      updateData();
     });
 
     return {
       event,
-      r1,
-      r2,
-      r3,
-      r4,
-      r5,
-      r6,
       contratPoderPublico,
       espacioPublico,
       menorIdade,

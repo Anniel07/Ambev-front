@@ -27,9 +27,13 @@
 
 <script lang="ts">
 /** componente usado en Index y pagina Farol Antigimento */
+import { InteractionType } from '@azure/msal-browser';
+import { loginRequest } from 'src/authConfig';
 import { api } from 'src/boot/axios';
 import { showAlert } from 'src/boot/util';
-import { defineComponent, onMounted, ref } from 'vue';
+import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
+import { callGetApi } from 'src/utils/MsGraphApiCall';
+import { defineComponent, onMounted, ref, watch } from 'vue';
 import { ChartData, Grafico } from '../models';
 
 export default defineComponent({
@@ -38,15 +42,15 @@ export default defineComponent({
     /*ExampleComponent*/
   },
   setup() {
+    const { result, acquireToken } = useMsalAuthentication(InteractionType.Redirect, loginRequest);
     const chartDatas = ref<Array<ChartData>>([]);
     const graficos = ref<Array<Grafico>>([]);
 
-    async function loadFarol() {
+    async function loadFarol(apiResult: any) {
       try {
-        const resp = await api.get<ChartData[]>(
-          '/api/Event/GetFarolAntingimento'
-        );
-        chartDatas.value = resp.data;
+        if(!apiResult.data)
+          throw apiResult;
+        chartDatas.value = apiResult.data;
         //console.log(chartDatas.value);
         chartDatas.value.forEach((cd) => {
           const porcientos = [];
@@ -62,16 +66,33 @@ export default defineComponent({
         });
       } catch (err: any) {
         showAlert(
-          `não foi possível exibir gráficos: ${
+          `Não foi possível exibir gráficos: ${
             err.response?.data.errorMessage ?? err
           }`
         );
       }
     }
 
-    onMounted(async () => {
-      await loadFarol();
+    async function updateData() {
+      if (result.value != undefined && result.value.accessToken) {
+        const apiResult = await callGetApi(result.value.accessToken, '/api/Event/GetFarolAntingimento').catch(() =>
+          acquireToken()
+        );
+        await loadFarol(apiResult);
+        //console.log('api result' , data.value);
+      }
+    }
+
+    updateData();
+
+    watch(result, () => {
+      // Fetch new data from the API each time the result changes (i.e. a new access token was acquired)
+      updateData();
     });
+
+    // onMounted(async () => {
+    //   await loadFarol();
+    // });
     return {
       chartDatas,
       graficos,

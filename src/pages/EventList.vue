@@ -322,9 +322,14 @@ import {
   ApiResp,
   DropDownInfo,
 } from 'components/models';
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, ref, watch } from 'vue';
 import { api, baseUrl } from 'boot/axios';
 import { ptLocale, showAlert } from 'boot/util';
+
+import { callGetApi } from 'src/utils/MsGraphApiCall';
+import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
+import { InteractionType } from '@azure/msal-browser';
+import { loginRequest } from 'src/authConfig';
 
 
 export default defineComponent({
@@ -333,6 +338,7 @@ export default defineComponent({
     /*ExampleComponent*/
   },
   setup() {
+    const { result, acquireToken } = useMsalAuthentication(InteractionType.Redirect, loginRequest);
     const units = ref<Select[]>();
 
     const model = ref<Select>();
@@ -355,7 +361,12 @@ export default defineComponent({
 
     async function rejectEvent() {
       try {
-        await api.get<ApiResp>(`api/Event/RejectEvent/${selectedEvt.value}`);
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken, `api/Event/RejectEvent/${selectedEvt.value}`);
+
+        if(!apiResult.data)
+          throw apiResult;
+        //await api.get<ApiResp>(`api/Event/RejectEvent/${selectedEvt.value}`);
         await loadEvents();
       } catch (err: any) {
         showAlert(
@@ -372,10 +383,12 @@ export default defineComponent({
       //console.log('sel', evtId);
     };
 
-    async function loadUnits() {
+    async function loadUnits(apiResult: any) {
       try {
-        const resp = await api.get('api/Enum/GetUnitsDropdownItems');
-        units.value = resp.data.result.map((o: DropDownInfo) => {
+        //const resp = await api.get('/api/Enum/GetUnitsDropdownItems');
+        if(!apiResult.data)
+          throw apiResult;
+        units.value = apiResult.data.result.map((o: DropDownInfo) => {
           return { label: o.text, value: parseInt(o.value) };
         });
         if (units.value != undefined) model.value = units.value[0];
@@ -389,13 +402,22 @@ export default defineComponent({
     }
     async function loadEvents() {
       try {
+        /*
         const resp = await api.get(
           'api/Event/GetPaginatedList?Unit=' +
             unitId.value +
             '&SkipCount=0&Date=' +
             date.value
-        );
-        events.value = resp.data.result.items;
+        );*/
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken, 'api/Event/GetPaginatedList?Unit=' +
+            unitId.value +
+            '&SkipCount=0&Date=' +
+            date.value);
+
+        if(!apiResult.data)
+          throw apiResult;
+        events.value = apiResult.data.result.items;
       } catch (err: any) {
         showAlert(
           `Falha ao carregar eventos: ${err.response?.data.errorMessage ?? err}`
@@ -444,7 +466,12 @@ export default defineComponent({
 
     const aprobarEvt = async () => {
       try {
-        await api.get(`/api/Event/ApproveEvent/${currEvtId.value}`);
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken, `/api/Event/ApproveEvent/${currEvtId.value}`);
+
+        if(!apiResult.data)
+          throw apiResult;
+        //await api.get(`/api/Event/ApproveEvent/${currEvtId.value}`);
 
         await loadEvents();
         showFileDialog.value = false; // close dialog
@@ -462,10 +489,16 @@ export default defineComponent({
       fillDocEvt(); //clear status
       currEvtId.value = evtId;
       try {
-        const resp = await api.get(
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken, `/api/Archive/GetUploadedArchives?eventId=${evtId}`);
+
+        if(!apiResult.data)
+          throw apiResult;
+
+        /* const resp = await api.get(
           `/api/Archive/GetUploadedArchives?eventId=${evtId}`
-        );
-        resp.data.forEach(
+        ); */
+        apiResult.data.forEach(
           (x: { id: number; category: string; status: number | null }) => {
             const evt = docEvts.value?.filter((e) => e.category == x.category);
             if (evt != undefined && evt?.length > 0) {
@@ -496,9 +529,15 @@ export default defineComponent({
 
     const aprobarArquivo = async () => {
       try {
-        const resp = await api.get(
-          `/api/Archive/ApproveArchive/${currDocId.value}`
-        );
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken, `/api/Archive/ApproveArchive/${currDocId.value}`);
+
+        if(!apiResult.data)
+          throw apiResult;
+
+        // const resp = await api.get(
+        //   `/api/Archive/ApproveArchive/${currDocId.value}`
+        // );
         await showFiles(currEvtId.value);
       } catch (err: any) {
         showAlert(
@@ -514,9 +553,15 @@ export default defineComponent({
         return;
       }
       try {
-        const resp = await api.get(
-          `/api/Archive/RejectArchive?ArchiveId=${currDocId.value}&RejectionReason=${reason.value}`
-        );
+        if(!result.value) return;
+        const apiResult = await callGetApi(result.value.accessToken,
+              `/api/Archive/RejectArchive?ArchiveId=${currDocId.value}&RejectionReason=${reason.value}`);
+
+        if(!apiResult.data)
+          throw apiResult;
+        // const resp = await api.get(
+        //   `/api/Archive/RejectArchive?ArchiveId=${currDocId.value}&RejectionReason=${reason.value}`
+        // );
         await showFiles(currEvtId.value);
         reason.value = '';
         confirmRechazarFile.value = false;
@@ -539,8 +584,31 @@ export default defineComponent({
     };
     onMounted(async () => {
       fillDocEvt();
-      await loadUnits();
-      await loadEvents();
+      //await loadUnits();
+      //await loadEvents();
+    });
+
+    async function updateData() {
+      if (result.value != undefined && result.value.accessToken) {
+        let apiResult = await callGetApi(result.value.accessToken, '/api/Enum/GetUnitsDropdownItems').catch(() =>
+          acquireToken()
+        );
+        await loadUnits(apiResult);
+        /*apiResult = await callGetApi(result.value.accessToken, 'api/Event/GetPaginatedList?Unit=' +
+            unitId.value +
+            '&SkipCount=0&Date=' +
+            date.value).catch(() =>
+          acquireToken()
+        );*/
+        await loadEvents();
+      }
+    }
+
+    updateData();
+
+    watch(result, () => {
+      // Fetch new data from the API each time the result changes (i.e. a new access token was acquired)
+      updateData();
     });
 
     return {
