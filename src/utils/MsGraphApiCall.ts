@@ -31,6 +31,21 @@ export async function callPostApi(accessToken: string, endPoint: string, data: a
      });
 }
 
+export async function callPutApi(accessToken: string, endPoint: string, data: any) {
+  const bearer = `Bearer ${accessToken}`;
+  const config = {
+    headers : {
+      Authorization: bearer
+    }
+  };
+  return api.put(endPoint, data, config)
+    .then(response => response)
+    .catch(err => {
+      //console.error(err);
+      return err;
+     });
+}
+
 
 // export async function callMsGraph(accessToken: string) {
 //   //console.log("doneee");

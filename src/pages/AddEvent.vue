@@ -571,7 +571,7 @@ import { useQuasar } from 'quasar';
 import { api, axios, baseUrl } from 'src/boot/axios';
 import { date } from 'quasar';
 //import ExampleComponent from 'components/ExampleComponent.vue';
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted, ref, watch } from 'vue';
 import {
   actRisco,
   contratPoderPublico,
@@ -582,6 +582,10 @@ import {
   showAlert,
   universitario,
 } from 'src/boot/util';
+import { callGetApi, callPostApi } from 'src/utils/MsGraphApiCall';
+import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
+import { InteractionType } from '@azure/msal-browser';
+import { loginRequest } from 'src/authConfig';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -589,6 +593,11 @@ export default defineComponent({
     /*ExampleComponent*/
   },
   setup() {
+    const { result, acquireToken } = useMsalAuthentication(
+      InteractionType.Redirect,
+      loginRequest
+    );
+
     const units = ref<Select[]>();
     const unitMod = ref<Select>();
     const brands = ref<Select[]>();
@@ -698,8 +707,16 @@ export default defineComponent({
 
     async function loadPropietarios() {
       try {
-        const resp = await api.get('/api/Enum/GetEventMakersDropdownItems');
-        namProp.value = resp.data.result.map((o: DropDownInfo) => {
+        if (!result.value) return;
+        const apiResult = await callGetApi(
+          result.value.accessToken,
+          '/api/Enum/GetEventMakersDropdownItems'
+        );
+
+        if (!apiResult.data) throw apiResult;
+
+        //const resp = await api.get('/api/Enum/GetEventMakersDropdownItems');
+        namProp.value = apiResult.data.result.map((o: DropDownInfo) => {
           return { label: o.text, value: parseInt(o.value) };
         });
       } catch (err: any) {
@@ -710,8 +727,16 @@ export default defineComponent({
     }
     async function loadUnits() {
       try {
-        const resp = await api.get('api/Enum/GetUnitsDropdownItems');
-        units.value = resp.data.result.map((o: DropDownInfo) => {
+        if (!result.value) return;
+        const apiResult = await callGetApi(
+          result.value.accessToken,
+          'api/Enum/GetUnitsDropdownItems'
+        );
+
+        if (!apiResult.data) throw apiResult;
+
+        //const resp = await api.get('api/Enum/GetUnitsDropdownItems');
+        units.value = apiResult.data.result.map((o: DropDownInfo) => {
           return { label: o.text, value: parseInt(o.value) };
         });
       } catch (err: any) {
@@ -725,11 +750,18 @@ export default defineComponent({
 
     async function loadBrands() {
       try {
-        const resp = await api.get(
+        if (!result.value) return;
+        const apiResult = await callGetApi(
+          result.value.accessToken,
           '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name'
         );
 
-        brands.value = resp.data.result.map((o: DropDownInfo) => {
+        if (!apiResult.data) throw apiResult;
+        // const resp = await api.get(
+        //   '/api/Brand/GetDropdownItems?fieldNameValue=id&fieldNameText=name'
+        // );
+
+        brands.value = apiResult.data.result.map((o: DropDownInfo) => {
           return { label: o.text, value: parseInt(o.value) };
         });
       } catch (err: any) {
@@ -741,10 +773,17 @@ export default defineComponent({
     //add a new brand
     async function submitBrand(data: string) {
       try {
-        const resp = await api.post('/api/Brand/Add', { name: data });
+        if (!result.value) return;
+        const apiResult = await callPostApi(
+          result.value.accessToken,
+          '/api/Brand/Add',
+          { name: data }
+        );
+        if (!apiResult.data) throw apiResult;
+        //const resp = await api.post('/api/Brand/Add', { name: data });
         await loadBrands();
-        const id = resp.data.result.id;
-        brandMod.value = brands.value?.filter(b => b.value === id)[0];
+        const id = apiResult.data.result.id;
+        brandMod.value = brands.value?.filter((b) => b.value === id)[0];
       } catch (err: any) {
         showAlert(
           `Falha ao adicionar nova marca: ${
@@ -822,7 +861,15 @@ export default defineComponent({
           docEvts.value != undefined ? docEvts.value[5].docId : null,
       };
       try {
-        await api.post('/api/Event/Add', data);
+        if (!result.value) return;
+        const apiResult = await callPostApi(
+          result.value.accessToken,
+          '/api/Event/Add',
+          data
+        );
+        // if(!apiResult.data)
+        //   throw apiResult;
+        //await api.post('/api/Event/Add', data);
         //clear data
         unitMod.value = undefined;
         brandMod.value = undefined;
@@ -863,18 +910,22 @@ export default defineComponent({
         formData.append('archive', file);
         formData.append('category', de.category);
         try {
-          const resp = await api.post('/api/Archive/UploadArchive', formData);
+          if (!result.value) return;
+          const apiResult = await callPostApi(
+            result.value.accessToken,
+            '/api/Archive/UploadArchive', formData
+          );
+          if (!apiResult.data) throw apiResult;
+          //const resp = await api.post('/api/Archive/UploadArchive', formData);
           showAlert('Arquivo enviado com sucesso.', true);
           de.color = 'orange';
           de.disabled = false;
-          de.src = baseUrl + '/api/Archive/Show/' + resp.data.result;
-          de.docId = parseInt(resp.data.result);
+          de.src = baseUrl + '/api/Archive/Show/' + apiResult.data.result;
+          de.docId = parseInt(apiResult.data.result);
           //console.log("src", de.src);
         } catch (err: any) {
           showAlert(
-            `Falha ao upload arquive: ${
-              err.response?.data.errorMessage ?? err
-            }`
+            `Falha ao upload arquive: ${err.response?.data.errorMessage ?? err}`
           );
         }
       }
@@ -891,7 +942,14 @@ export default defineComponent({
     async function uploadEmailFile() {
       const last =
         docEvts.value?.length != undefined ? docEvts.value?.length - 1 : 0;
-      if (docEvts.value != undefined) await uploadFile(docEvts.value[last]);
+
+      if (docEvts.value != undefined) {
+        //console.log(docEvts.value[last].file.name);
+        if(docEvts.value[last].file.name !== '')
+          await uploadFile(docEvts.value[last]);
+        else
+          r1.value = false;
+      }
     }
 
     const showFileArea = (flag: boolean, src = '') => {
@@ -932,11 +990,26 @@ export default defineComponent({
       if (r1.value) showEmailModal.value = true;
     };
 
+    async function updateData() {
+      if (result.value != undefined && result.value.accessToken) {
+        /*const apiResult = await callGetApi(
+          result.value.accessToken,
+          `/api/Event/GetById/${route.params.id}`
+        ).catch(() => acquireToken());*/
+        await loadUnits();
+        await loadBrands();
+        await loadPropietarios();
+      }
+    }
+    updateData();
+
+    watch(result, () => {
+      // Fetch new data from the API each time the result changes (i.e. a new access token was acquired)
+      updateData();
+    });
+
     onMounted(async () => {
       fillDocEvt();
-      await loadUnits();
-      await loadBrands();
-      await loadPropietarios();
 
       //console.log("Evts" , docEvts.value);
     });
