@@ -56,6 +56,7 @@ export interface DocEvt {
   label: string;
   docId: number | null;
   status: number | null;
+  rejectionReason: string | null;
 }
 
 

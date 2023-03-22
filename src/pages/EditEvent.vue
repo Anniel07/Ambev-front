@@ -244,12 +244,19 @@
               v-model="estimatedAudience"
               label="Público Estimado*"
               :rules="[(val) => !!val || 'O campo é obrigatório.']"
+              type="number"
+              min="0"
+              max="100000000"
             />
           </div>
           <div class="col-6">
             <q-input
               v-model="investEvent"
               label="Investimento*"
+              type="number"
+              min="0"
+              max="100000000"
+              step="0.01"
               :rules="[(val) => !!val || 'O campo é obrigatório.']"
             />
           </div>
@@ -299,13 +306,13 @@
       <div class="col-6">
         <div class="row">
           <div class="col-8">
-            <div class="row">Contratação com o Poder Público?*</div>
+            <div class="row"><p class="text-orange">Contratação com o Poder Público?*</p></div>
             <div class="row">
-              <p class="text-caption">
+              <p class="text-caption text-positive">
                 Crique
                 <a
                   href="http://compliancechannel.la.interbrew.net/"
-                  target="_blank"
+                  target="_blank" class="text-caption text-positive"
                   >aqui</a
                 >
                 e registre um chamado no canal de compliance
@@ -313,7 +320,9 @@
             </div>
           </div>
           <div class="col-2">
-            <q-toggle v-model="r1" @click="handleShowEmailMod" />
+            <!-- don't allow to repleace approved files docEvt.status === EventStatus.Approved -->
+            <!-- falta-->
+            <q-toggle v-model="r1" @click="handleShowEmailMod" :disable="disableEmailFile"/>
           </div>
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
@@ -332,7 +341,7 @@
       <div class="col-3"></div>
       <div class="col-6">
         <div class="row">
-          <div class="col-8">Evento realizado em espaço público?</div>
+          <div class="col-8"><p class="text-orange">Evento realizado em espaço público?</p></div>
           <div class="col-2"><q-toggle v-model="r2" /></div>
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
@@ -350,7 +359,7 @@
       <div class="col-3"></div>
       <div class="col-6">
         <div class="row">
-          <div class="col-8">Eventos com menores de idade?</div>
+          <div class="col-8"><p class="text-orange">Eventos com menores de idade?</p></div>
           <div class="col-2"><q-toggle v-model="r3" /></div>
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
@@ -367,7 +376,7 @@
       <div class="col-3"></div>
       <div class="col-6">
         <div class="row">
-          <div class="col-8">Ativação de risco?</div>
+          <div class="col-8"><p class="text-orange">Ativação de risco?</p></div>
           <div class="col-2"><q-toggle v-model="r4" /></div>
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
@@ -384,7 +393,7 @@
       <div class="col-3"></div>
       <div class="col-6">
         <div class="row">
-          <div class="col-8">Ativação de marca em estrutura montada?</div>
+          <div class="col-8"><p class="text-orange">Ativação de marca em estrutura montada?</p></div>
           <div class="col-2"><q-toggle v-model="r5" /></div>
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
@@ -401,7 +410,7 @@
       <div class="col-3"></div>
       <div class="col-6">
         <div class="row">
-          <div class="col-8">Universitário Open Bar?</div>
+          <div class="col-8"><p class="text-orange">Universitário Open Bar?</p></div>
           <div class="col-2"><q-toggle v-model="r6" /></div>
           <div class="col-2 column items-end">
             <q-icon size="xs" name="help" color="negative">
@@ -469,13 +478,16 @@
                   :disable="docEvt.disabled"
                   @click="showFileArea(true, docEvt.src)"
                 ></q-btn>
-
+                <!-- don't allow to repleace approved files-->
                 <q-file
                   color="primary"
                   style="margin-top: -10px; width: 80%"
                   v-model="docEvt.file"
-                  label="Arquivo"
+                  label="Arquivos pdf, .png"
                   accept=".pdf, .png"
+                  max-file-size="15728640"
+                  @rejected="onRejectedFile"
+                  :disable="docEvt.status === ArchiveStatus.Approved"
                 >
                   <template v-slot:prepend>
                     <q-icon name="attach_file" />
@@ -513,7 +525,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <q-dialog v-model="showEmailModal">
+    <q-dialog v-model="showEmailModal" persistent>
       <q-card style="width: 800px; max-width: 80vw">
         <q-card-section>
           <div class="text-h6">Upload de e-mail de validação de evento</div>
@@ -526,8 +538,10 @@
                 <q-file
                   color="primary"
                   style="margin-top: 0px; width: 100%"
-                  label="Arquivos pdf; .png;"
+                  label="Arquivos pdf, .png"
                   accept=".pdf, .png"
+                  max-file-size="15728640"
+                  @rejected="onRejectedFile"
                   v-model="docEvts[docEvts.length - 1].file"
                 >
                   <template v-slot:prepend>
@@ -585,6 +599,8 @@ import { callGetApi, callPostApi, callPutApi } from 'src/utils/MsGraphApiCall';
 import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
 import { InteractionType } from '@azure/msal-browser';
 import { loginRequest } from 'src/authConfig';
+import { useRouter } from 'vue-router';
+import {ArchiveStatus, EventStatus} from 'components/enums';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -596,6 +612,7 @@ export default defineComponent({
       InteractionType.Redirect,
       loginRequest
     );
+    const router = useRouter();
 
     const units = ref<Select[]>();
     const unitMod = ref<Select>();
@@ -628,6 +645,7 @@ export default defineComponent({
     const srcFile = ref('');
     const isFileShowed = ref(false); //para mostrar ocultar area archivos
     const complianceAreaAuthorizationId = ref(null);
+    const disableEmailFile = ref(false);
     const $q = useQuasar();
     const route = useRoute();
 
@@ -860,6 +878,7 @@ export default defineComponent({
         );
         //await api.put(`/api/Event/Update/${route.params.id}`, data);
         showAlert('Evento editado com sucesso', true);
+        router.push('/lista-eventos');
       } catch (err: any) {
         showAlert(
           `Falha ao editar evento: ${err.response?.data.errorMessage ?? err}`
@@ -945,6 +964,7 @@ export default defineComponent({
           label: labels[i - 1],
           docId: null,
           status: null,
+          rejectionReason: null,
         });
       }
       //console.log("evtDoc", docEvts.value);
@@ -997,7 +1017,7 @@ export default defineComponent({
         r5.value = r.brandActivation;
         r6.value = r.universityOpenBar;
 
-        r.archives.forEach((a: { category: number; id: number }) => {
+        r.archives.forEach((a: { category: number; id: number; status: number | null }) => {
           if (docEvts.value != undefined) {
             const idx =
               a.category == 0 ? 6 : a.category == 1 ? 0 : a.category - 2;
@@ -1005,6 +1025,11 @@ export default defineComponent({
             docEvts.value[idx].color = 'orange';
             docEvts.value[idx].disabled = false;
             docEvts.value[idx].src = baseUrl + '/api/Archive/Show/' + a.id;
+            docEvts.value[idx].status = a.status;
+
+            if(a.category === 0 && a.status === ArchiveStatus.Approved) {
+              disableEmailFile.value = true;
+            }
           }
         });
         complianceAreaAuthorizationId.value = r.complianceAreaAuthorizationId;
@@ -1092,6 +1117,15 @@ export default defineComponent({
       actRisco,
       marcaEst,
       universitario,
+      ArchiveStatus,
+      disableEmailFile,
+      onRejectedFile () {
+        $q.notify({
+          position: 'top',
+          type: 'negative',
+          message: 'O arquivo deve ser nos formatos .pdf ou .png e o tamanho máximo permitido é de 15 Mb por arquivo'
+        })
+      }
     };
   },
 });

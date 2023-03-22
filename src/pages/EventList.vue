@@ -12,6 +12,7 @@
   </div>
   <div class="q-pa-md row items-center justify-center q-gutter-md">
     <q-select
+      clearable
       v-model="model"
       :options="units"
       label="Unidade"
@@ -44,21 +45,14 @@
     <p><q-icon name="square" color="negative" /> Reprovado</p>
   </div>
 
-  <!-- :style="{
-        'border-right-color':
-          event.status === 0
-            ? 'var(--positive)'
-            : event.status === 1
-            ? '#3E8F69'
-            : '#BD0C31',
-      }" -->
+
   <div class="q-ml-xl row items-start q-gutter-xl">
     <q-card
       class="my-card"
       :class="
-        event.status === 0
+        event.status === EventStatus.Pendent
           ? 'warningBor'
-          : event.status === 1
+          : event.status === EventStatus.Approved
           ? 'positiveBor'
           : 'negativeBor'
       "
@@ -78,14 +72,14 @@
           flat
           round
           :color="
-            event.status === 0
+            event.status === EventStatus.Pendent
               ? 'warning'
-              : event.status === 1
+              : event.status === EventStatus.Approved
               ? 'positive'
               : 'negative'
           "
           icon="edit"
-          :disable="event.status !== 0"
+          :disable="event.status !== EventStatus.Pendent"
         />
         <q-btn
           flat
@@ -100,9 +94,9 @@
         <div
           class="text-h6 q-mb-xs"
           :class="
-            event.status === 0
+            event.status === EventStatus.Pendent
               ? 'text-warning'
-              : event.status === 1
+              : event.status === EventStatus.Approved
               ? 'text-positive'
               : 'text-negative'
           "
@@ -118,8 +112,8 @@
         <q-btn
           no-caps
           flat
-          :class="{ 'text-negative': event.status === 2 }"
-          :disable="event.status != 0"
+          :class="{ 'text-negative': event.status === EventStatus.Rejected }"
+          :disable="event.status !== EventStatus.Pendent"
           @click="showFiles(event.id)"
           >Arquivos</q-btn
         >
@@ -239,9 +233,9 @@
                 filled
                 rounded
                 :color="
-                  docEvt.status == null
+                  (docEvt.status == null)
                     ? 'primary'
-                    : docEvt.status == 0
+                    : docEvt.status === ArchiveStatus.Approved
                     ? 'positive'
                     : 'negative'
                 "
@@ -258,11 +252,11 @@
                 rounded
                 :color="docEvt.color"
                 :disable="docEvt.color == 'grey'"
-                @click="showFileArea(true, docEvt.src)"
+                @click="showFileArea(true, docEvt.src, docEvt.rejectionReason)"
               ></q-btn>
               <q-btn
                 v-if="!docEvt.disabled"
-                icon="check"
+                icon="thumb_up"
                 no-caps
                 size="sm"
                 rounded
@@ -271,7 +265,7 @@
               ></q-btn>
               <q-btn
                 v-if="!docEvt.disabled"
-                icon="remove"
+                icon="thumb_down"
                 no-caps
                 size="sm"
                 rounded
@@ -295,6 +289,7 @@
             width="800"
             height="700"
           ></iframe>
+          <p v-if="rejectionReason != null && rejectionReason != ''" class="text-negative">Arquivo rejeitado: {{rejectionReason}}</p>
         </div>
       </q-card-section>
 
@@ -330,7 +325,7 @@ import { callGetApi } from 'src/utils/MsGraphApiCall';
 import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
 import { InteractionType } from '@azure/msal-browser';
 import { loginRequest } from 'src/authConfig';
-
+import {ArchiveStatus, EventStatus} from 'components/enums';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -343,7 +338,7 @@ export default defineComponent({
 
     const model = ref<Select>();
     const date = ref('');
-    const unitId = ref(0);
+    const unitId = ref(-1);
     const events = ref<Event[]>();
     const selectedEvt = ref(-1);
     const confirm = ref(false);
@@ -358,6 +353,7 @@ export default defineComponent({
     const reason = ref(''); //razon de rejeitar archivo
     const confirmAprbarEvt = ref(false);
     const showAprobarEvt = ref(false);
+    const rejectionReason = ref(''); //si un archivo es desaprobado mostrar la razon;
 
     async function rejectEvent() {
       try {
@@ -391,7 +387,7 @@ export default defineComponent({
         units.value = apiResult.data.result.map((o: DropDownInfo) => {
           return { label: o.text, value: parseInt(o.value) };
         });
-        if (units.value != undefined) model.value = units.value[0];
+        //if (units.value != undefined) model.value = units.value[0];
       } catch (err: any) {
         showAlert(
           `Falha ao carregar unidades: ${
@@ -410,8 +406,9 @@ export default defineComponent({
             date.value
         );*/
         if(!result.value) return;
+        const unitTemp = unitId.value < 0 ? '' : unitId.value;
         const apiResult = await callGetApi(result.value.accessToken, 'api/Event/GetPaginatedList?Unit=' +
-            unitId.value +
+            unitTemp +
             '&SkipCount=0&Date=' +
             date.value);
 
@@ -426,8 +423,8 @@ export default defineComponent({
     }
 
     const changeUnit = async (val: Select) => {
-      //console.log(val.value);
-      unitId.value = val.value;
+      //console.log(val);
+      unitId.value = val ? val.value : -1;
       await loadEvents();
     };
 
@@ -459,6 +456,7 @@ export default defineComponent({
           label: labels[i - 1],
           docId: null,
           status: null,
+          rejectionReason: null,
         });
       }
       //console.log("evtDoc", docEvts.value);
@@ -499,7 +497,7 @@ export default defineComponent({
           `/api/Archive/GetUploadedArchives?eventId=${evtId}`
         ); */
         apiResult.data.forEach(
-          (x: { id: number; category: string; status: number | null }) => {
+          (x: { id: number; category: string; status: number | null; rejectionReason: string | null }) => {
             const evt = docEvts.value?.filter((e) => e.category == x.category);
             if (evt != undefined && evt?.length > 0) {
               const first = evt[0];
@@ -508,6 +506,7 @@ export default defineComponent({
               first.color = x.id ? 'orange' : 'grey';
               first.disabled = x.status != null;
               first.src = baseUrl + '/api/Archive/Show/' + x.id;
+              first.rejectionReason = x.rejectionReason;
             }
           }
         );
@@ -521,9 +520,10 @@ export default defineComponent({
       }
     };
 
-    const showFileArea = (flag: boolean, src = '') => {
+    const showFileArea = (flag: boolean, src = '', _rejectionReason: '') => {
       isFileShowed.value = flag;
       srcFile.value = src;
+      rejectionReason.value = _rejectionReason;
       //console.log("src", src);
     };
 
@@ -640,6 +640,9 @@ export default defineComponent({
       showRechazarFile,
       reason,
       baseUrl,
+      EventStatus,
+      ArchiveStatus,
+      rejectionReason,
     };
   },
 });

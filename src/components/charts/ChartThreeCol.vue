@@ -45,24 +45,21 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const { result, acquireToken } = useMsalAuthentication(InteractionType.Redirect, loginRequest);
+    const { result, acquireToken } = useMsalAuthentication(
+      InteractionType.Redirect,
+      loginRequest
+    );
     //console.log("props", props);
     const chartDatas = ref<Array<ChartData>>([]);
     const graficos = ref<Array<Grafico>>([]);
 
     async function loadGraficos(apiResult: any) {
-
-      const temp = props.graficoThreeCol.data;
-      //console.log(temp.filter,temp.city,  temp.state); //no hacer peticion cuando es regional hasta defnir todos los campos
-      if(temp.filter === 6 && (temp.city == undefined || temp.city == '' || temp.state == undefined || temp.state < 0))
-        return;
       try {
         /* const resp = await api.post<ChartData[]>(
           '/api/Event/GetEventsInfo',
           props.graficoThreeCol.data
         ); */
-         if(!apiResult.data)
-          throw apiResult;
+        if (!apiResult.data) throw apiResult;
         chartDatas.value = apiResult.data;
         //console.log(props.graficoThreeCol.data.filter);
         chartDatas.value.forEach((cd) => {
@@ -92,10 +89,21 @@ export default defineComponent({
     }); */
     async function updateData() {
       if (result.value != undefined && result.value.accessToken) {
-        const apiResult = await callPostApi(result.value.accessToken, '/api/Event/GetEventsInfo',
-         props.graficoThreeCol.data).catch(() =>
-          acquireToken()
-        );
+        const temp = props.graficoThreeCol.data;
+        //console.log(temp.filter,temp.city,  temp.state); //no hacer peticion cuando es regional hasta defnir todos los campos
+        if (
+          temp.filter === 6 &&
+          (temp.city == undefined ||
+            temp.city == '' ||
+            temp.state == undefined ||
+            temp.state < 0)
+        )
+          return;
+        const apiResult = await callPostApi(
+          result.value.accessToken,
+          '/api/Event/GetEventsInfo',
+          props.graficoThreeCol.data
+        ).catch(() => acquireToken());
         await loadGraficos(apiResult);
         //console.log('api result' , data.value);
       }

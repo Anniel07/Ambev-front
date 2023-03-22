@@ -46,7 +46,7 @@
     </div>
   </div>
   <h5 class="text-center" style="font-weight: bold; text-decoration: underline">
-    Farol de Eventos
+    Farol de Atingimento de Eventos
   </h5>
   <farolChart></farolChart>
 </template>
