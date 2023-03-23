@@ -537,8 +537,8 @@
                 <q-file
                   color="primary"
                   style="margin-top: 0px; width: 100%"
-                  label="Arquivos pdf, .png"
-                  accept=".pdf, .png"
+                  label="Arquivos pdf, .eml"
+                  accept=".pdf, .eml"
                   max-file-size="15728640"
                   @rejected="onRejectedFile"
                   v-model="docEvts[docEvts.length - 1].file"

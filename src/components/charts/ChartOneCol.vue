@@ -1,15 +1,15 @@
 <template>
   <div class="row">
     <div
-      class="col-3 column items-center justify-center"
+      class="col-12 column items-center justify-evenly"
       style="margin-bottom: 20px"
       v-for="cd in graficos"
       :key="cd.stateId"
     >
       <apexchart
         type="bar"
-        height="270"
-        width="160"
+        height="350"
+        width="290"
         :options="chartOptions"
         :series="cd.series"
       ></apexchart>
@@ -48,6 +48,9 @@ export default defineComponent({
     const chartDatas = ref<Array<ChartData>>([]);
     const graficos = ref<Array<Grafico>>([]);
 
+    const categories = ref<Array<string>>([]);
+    const percents = ref<Array<number>>([]);
+
     async function loadGraficos(apiResult : any) {
       try {
         /* const resp = await api.post<ChartData[]>(
@@ -59,7 +62,7 @@ export default defineComponent({
         chartDatas.value = apiResult.data;
         //console.log(props.graficoOneCol.data.filter);
         chartDatas.value.forEach((cd) => {
-          const porcientos = [];
+          //const porcientos = [];
           let pc = 0;
           switch (props.graficoOneCol.data.filter) {
             case 0:
@@ -72,11 +75,17 @@ export default defineComponent({
               pc = cd.expiredPercent;
               break;
           }
-          porcientos.push(pc);
-          graficos.value.push({
-            series: [{ name: props.graficoOneCol.caption, data: porcientos }],
-            name: cd.name,
-          });
+          //porcientos.push(pc);
+          categories.value.push(cd.name);
+          percents.value.push(pc);
+          // graficos.value.push({
+          //   series: [{ name: props.graficoOneCol.caption, data: porcientos }],
+          //   name: cd.name,
+          // });
+        });
+        graficos.value.push({
+            series: [{ name: '', data: percents.value }],
+            name: props.graficoOneCol.caption,
         });
       } catch (err: any) {
         showAlert(
@@ -108,7 +117,6 @@ export default defineComponent({
     });
 
     return {
-      chartDatas,
       graficos,
       chartOptions: {
         chart: {
@@ -136,7 +144,7 @@ export default defineComponent({
         },
 
         xaxis: {
-          categories: [props.graficoOneCol.caption],
+          categories: categories.value,
           position: 'top',
           axisBorder: {
             show: false,
@@ -175,7 +183,7 @@ export default defineComponent({
           },
         },
         title: {
-          text: 'SP',
+          text: '',
           floating: true,
           offsetY: 330,
           align: 'center',

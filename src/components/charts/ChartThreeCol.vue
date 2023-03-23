@@ -1,7 +1,7 @@
 <template>
   <div class="row">
     <div
-      class="col-3 column items-center justify-center"
+      :class="graficos.length === 1 ? 'col-12 column items-center justify-evenly' : 'col-3 column items-center justify-center'"
       style="margin-bottom: 20px"
       v-for="cd in graficos"
       :key="cd.stateId"

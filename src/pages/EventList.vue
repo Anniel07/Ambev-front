@@ -45,7 +45,6 @@
     <p><q-icon name="square" color="negative" /> Reprovado</p>
   </div>
 
-
   <div class="q-ml-xl row items-start q-gutter-xl">
     <q-card
       class="my-card"
@@ -194,7 +193,12 @@
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <q-input dense v-model="reason" autofocus />
+        <div class="q-pa-md">
+          <q-option-group :options="options" type="radio" v-model="group" />
+          <q-input v-show="group == '6'"  dense v-model="reason" autofocus />
+          <!--  -->
+        </div>
+
       </q-card-section>
 
       <q-card-actions align="right">
@@ -225,7 +229,10 @@
             :key="docEvt.category"
             style="margin-bottom: 25px"
           >
-            <div v-if="docEvt.category != '0'" class="col-7">
+            <div
+              v-if="docEvt.category != '0' || docEvt.docId != null"
+              class="col-7"
+            >
               <q-btn
                 no-caps
                 class="csWidth"
@@ -233,7 +240,7 @@
                 filled
                 rounded
                 :color="
-                  (docEvt.status == null)
+                  docEvt.status == null
                     ? 'primary'
                     : docEvt.status === ArchiveStatus.Approved
                     ? 'positive'
@@ -242,7 +249,7 @@
               />
             </div>
             <div
-              v-if="docEvt.category != '0'"
+              v-if="docEvt.category != '0' || docEvt.docId != null"
               class="col-5 row items-center q-gutter-md"
             >
               <q-btn
@@ -289,7 +296,12 @@
             width="800"
             height="700"
           ></iframe>
-          <p v-if="rejectionReason != null && rejectionReason != ''" class="text-negative">Arquivo rejeitado: {{rejectionReason}}</p>
+          <p
+            v-if="rejectionReason != null && rejectionReason != ''"
+            class="text-negative"
+          >
+            Arquivo rejeitado: {{ rejectionReason }}
+          </p>
         </div>
       </q-card-section>
 
@@ -325,7 +337,8 @@ import { callGetApi } from 'src/utils/MsGraphApiCall';
 import { useMsalAuthentication } from 'src/composition-api/useMsalAuthentication';
 import { InteractionType } from '@azure/msal-browser';
 import { loginRequest } from 'src/authConfig';
-import {ArchiveStatus, EventStatus} from 'components/enums';
+import { ArchiveStatus, EventStatus } from 'components/enums';
+
 
 export default defineComponent({
   name: 'IndexPage',
@@ -333,7 +346,10 @@ export default defineComponent({
     /*ExampleComponent*/
   },
   setup() {
-    const { result, acquireToken } = useMsalAuthentication(InteractionType.Redirect, loginRequest);
+    const { result, acquireToken } = useMsalAuthentication(
+      InteractionType.Redirect,
+      loginRequest
+    );
     const units = ref<Select[]>();
 
     const model = ref<Select>();
@@ -354,14 +370,25 @@ export default defineComponent({
     const confirmAprbarEvt = ref(false);
     const showAprobarEvt = ref(false);
     const rejectionReason = ref(''); //si un archivo es desaprobado mostrar la razon;
+    const group = ref(null);
+    const options = [
+        { label: 'O documento apresentado é um protocolo, não o documento final expedido pelo órgão público', value: '1' },
+        { label: 'O documento apresentado é um rascunho, não o documento definitivo expedido pelo órgão público', value: '2' },
+        { label: 'O documento apresentado é divergente do documento solicitado', value: '3' },
+        { label: 'O contrato apresentado não está assinado pelas partes', value: '4' },
+        { label: 'O documento apresentado não se refere ao evento cadastrado', value: '5' },
+        { label: 'Outro comentário', value: '6' }
+      ];
 
     async function rejectEvent() {
       try {
-        if(!result.value) return;
-        const apiResult = await callGetApi(result.value.accessToken, `api/Event/RejectEvent/${selectedEvt.value}`);
+        if (!result.value) return;
+        const apiResult = await callGetApi(
+          result.value.accessToken,
+          `api/Event/RejectEvent/${selectedEvt.value}`
+        );
 
-        if(!apiResult.data)
-          throw apiResult;
+        if (!apiResult.data) throw apiResult;
         //await api.get<ApiResp>(`api/Event/RejectEvent/${selectedEvt.value}`);
         await loadEvents();
       } catch (err: any) {
@@ -382,8 +409,7 @@ export default defineComponent({
     async function loadUnits(apiResult: any) {
       try {
         //const resp = await api.get('/api/Enum/GetUnitsDropdownItems');
-        if(!apiResult.data)
-          throw apiResult;
+        if (!apiResult.data) throw apiResult;
         units.value = apiResult.data.result.map((o: DropDownInfo) => {
           return { label: o.text, value: parseInt(o.value) };
         });
@@ -405,15 +431,17 @@ export default defineComponent({
             '&SkipCount=0&Date=' +
             date.value
         );*/
-        if(!result.value) return;
+        if (!result.value) return;
         const unitTemp = unitId.value < 0 ? '' : unitId.value;
-        const apiResult = await callGetApi(result.value.accessToken, 'api/Event/GetPaginatedList?Unit=' +
+        const apiResult = await callGetApi(
+          result.value.accessToken,
+          'api/Event/GetPaginatedList?Unit=' +
             unitTemp +
             '&SkipCount=0&Date=' +
-            date.value);
+            date.value
+        );
 
-        if(!apiResult.data)
-          throw apiResult;
+        if (!apiResult.data) throw apiResult;
         events.value = apiResult.data.result.items;
       } catch (err: any) {
         showAlert(
@@ -443,9 +471,11 @@ export default defineComponent({
         'Contrato de UTI Móvel',
         'Contrato de Segurança Privada',
         'Contrato de Patrocínio Assinado Pelas Partes',
+        'Autorização da Área de compliance',
       ];
-      for (let i = 1; i <= 6; i++) {
+      for (let i = 1; i <= 7; i++) {
         let cat = i === 1 ? '1' : '' + (i + 1);
+        if (i === 7) cat = '0';
 
         docEvts.value?.push({
           color: 'grey',
@@ -464,11 +494,13 @@ export default defineComponent({
 
     const aprobarEvt = async () => {
       try {
-        if(!result.value) return;
-        const apiResult = await callGetApi(result.value.accessToken, `/api/Event/ApproveEvent/${currEvtId.value}`);
+        if (!result.value) return;
+        const apiResult = await callGetApi(
+          result.value.accessToken,
+          `/api/Event/ApproveEvent/${currEvtId.value}`
+        );
 
-        if(!apiResult.data)
-          throw apiResult;
+        if (!apiResult.data) throw apiResult;
         //await api.get(`/api/Event/ApproveEvent/${currEvtId.value}`);
 
         await loadEvents();
@@ -487,17 +519,24 @@ export default defineComponent({
       fillDocEvt(); //clear status
       currEvtId.value = evtId;
       try {
-        if(!result.value) return;
-        const apiResult = await callGetApi(result.value.accessToken, `/api/Archive/GetUploadedArchives?eventId=${evtId}`);
+        if (!result.value) return;
+        const apiResult = await callGetApi(
+          result.value.accessToken,
+          `/api/Archive/GetUploadedArchives?eventId=${evtId}`
+        );
 
-        if(!apiResult.data)
-          throw apiResult;
+        if (!apiResult.data) throw apiResult;
 
         /* const resp = await api.get(
           `/api/Archive/GetUploadedArchives?eventId=${evtId}`
         ); */
         apiResult.data.forEach(
-          (x: { id: number; category: string; status: number | null; rejectionReason: string | null }) => {
+          (x: {
+            id: number;
+            category: string;
+            status: number | null;
+            rejectionReason: string | null;
+          }) => {
             const evt = docEvts.value?.filter((e) => e.category == x.category);
             if (evt != undefined && evt?.length > 0) {
               const first = evt[0];
@@ -529,11 +568,13 @@ export default defineComponent({
 
     const aprobarArquivo = async () => {
       try {
-        if(!result.value) return;
-        const apiResult = await callGetApi(result.value.accessToken, `/api/Archive/ApproveArchive/${currDocId.value}`);
+        if (!result.value) return;
+        const apiResult = await callGetApi(
+          result.value.accessToken,
+          `/api/Archive/ApproveArchive/${currDocId.value}`
+        );
 
-        if(!apiResult.data)
-          throw apiResult;
+        if (!apiResult.data) throw apiResult;
 
         // const resp = await api.get(
         //   `/api/Archive/ApproveArchive/${currDocId.value}`
@@ -548,17 +589,22 @@ export default defineComponent({
       }
     };
     const rechazarArquivo = async () => {
-      if (reason.value.trim().length === 0) {
+      //console.log(group.value);
+      if (group.value == null || group.value == '6' && reason.value.trim().length === 0) {
         showAlert('Insira o motivo');
         return;
       }
       try {
-        if(!result.value) return;
-        const apiResult = await callGetApi(result.value.accessToken,
-              `/api/Archive/RejectArchive?ArchiveId=${currDocId.value}&RejectionReason=${reason.value}`);
+        if (!result.value) return;
+        let comment = options[group.value-1].label;
+        if(group.value == '6')
+          comment += `: ${reason.value}`;
+        const apiResult = await callGetApi(
+          result.value.accessToken,
+          `/api/Archive/RejectArchive?ArchiveId=${currDocId.value}&RejectionReason=${comment}`
+        );
 
-        if(!apiResult.data)
-          throw apiResult;
+        if (!apiResult.data) throw apiResult;
         // const resp = await api.get(
         //   `/api/Archive/RejectArchive?ArchiveId=${currDocId.value}&RejectionReason=${reason.value}`
         // );
@@ -590,9 +636,10 @@ export default defineComponent({
 
     async function updateData() {
       if (result.value != undefined && result.value.accessToken) {
-        let apiResult = await callGetApi(result.value.accessToken, '/api/Enum/GetUnitsDropdownItems').catch(() =>
-          acquireToken()
-        );
+        let apiResult = await callGetApi(
+          result.value.accessToken,
+          '/api/Enum/GetUnitsDropdownItems'
+        ).catch(() => acquireToken());
         await loadUnits(apiResult);
         /*apiResult = await callGetApi(result.value.accessToken, 'api/Event/GetPaginatedList?Unit=' +
             unitId.value +
@@ -643,6 +690,9 @@ export default defineComponent({
       EventStatus,
       ArchiveStatus,
       rejectionReason,
+      group,
+
+      options,
     };
   },
 });
